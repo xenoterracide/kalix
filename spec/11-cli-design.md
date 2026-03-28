@@ -138,21 +138,31 @@ Would execute:
   :jar
 ```
 
-### `klx sync` - Download Everything Upfront
+### `klx fetch` - Download Dependencies
 
 While Kalix downloads dependencies on demand, you may want to prefetch everything (e.g., before getting on a plane):
 
 ```bash
-# Download all dependencies and tools for current project
-$ klx sync
+# Download all dependencies for current project
+$ klx fetch
 Resolving dependencies from kalix.lock...
 Downloading 47 artifacts...
-Downloading tools (checkstyle, ktlint, spotbugs)...
 Done. All dependencies cached in ~/.kalix/
+
+# Download dependencies and tools
+$ klx fetch --all
+Resolving dependencies...
+Downloading tools (checkstyle, ktlint, spotbugs)...
+Done.
 
 # Now all commands work without network
 $ klx build  # Uses cached artifacts, no network needed
 ```
+
+**Git-inspired naming:**
+
+- `klx fetch` - Download dependencies (like `git fetch`)
+- `klx fetch --all` - Download dependencies + tools
 
 **Difference from Gradle's `--offline`:**
 
@@ -161,14 +171,14 @@ $ klx build  # Uses cached artifacts, no network needed
 | Gradle    | `--offline` flag    | Fail if not cached                       |
 | Maven     | `--offline` flag    | Fail if not cached                       |
 | **Kalix** | Downloads on demand | Always works if cached, downloads if not |
-| **Kalix** | `sync` command      | Proactive download, then work offline    |
+| **Kalix** | `fetch` command     | Proactive download (git-inspired)        |
 
 Kalix doesn't need `--offline` because:
 
 1. Downloads are automatic when needed
 2. Lock files ensure reproducibility
 3. Immutable versions mean downloads are safe
-4. `sync` command lets you prefetch when convenient
+4. `fetch` command lets you prefetch when convenient
 
 ### `--rerun`
 

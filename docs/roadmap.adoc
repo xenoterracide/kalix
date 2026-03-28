@@ -4,28 +4,147 @@
 
 = Kalix Roadmap
 
-This document defines the phases of Kalix development and what features belong in each phase.
+This document defines the phases of Kalix development following RUP-inspired phases (per Craig Larman's *UML and Patterns*).
 
-== Phase Definitions
+== Phase Overview
 
-Demo::
-  Feature-complete enough to demonstrate the vision and get feedback.
-  Core workflows work for simple projects.
-  May have rough edges, limited edge case handling.
+Inception::
+  Establish vision, scope, and feasibility.
+  Core requirements documented.
+  Key architectural decisions made.
+  Duration: 1-2 weeks
 
-MVP (Minimum Viable Product)::
-  Production-ready for small to medium projects.
-  Core features stable and tested.
-  Migration path from Maven/Gradle established.
-  Documentation complete for common use cases.
+Elaboration::
+  Implement core architecture.
+  Resolve highest risks.
+  Build vertical slice (end-to-end workflow).
+  Duration: 3-4 weeks
 
-Beyond::
-  Nice-to-have features that enhance the experience.
-  Enterprise features.
-  Performance optimizations.
-  Extended ecosystem integrations.
+Construction::
+  Bulk of development.
+  Features to Demo, then MVP.
+  Multiple iterations.
+  Duration: 8-12 weeks
 
-== Feature Matrix
+Transition::
+  Polish, documentation, migration guides.
+  Release preparation.
+  Community onboarding.
+  Duration: 2-3 weeks
+
+== Inception Phase (Current)
+
+**Goal:** Vision clear, requirements documented, feasibility assessed.
+
+**Status:** ✅ Mostly Complete (accelerated by AI)
+
+| Deliverable | Status | Notes |
+|-------------|--------|-------|
+| Vision document | ✅ | spec/01-vision.md |
+| Use cases (8) | ✅ | docs/use-cases/ |
+| Architecture overview | ✅ | spec/10-plugin-architecture.md |
+| Risk assessment | 🚧 | See Risks below |
+| Feasibility spike | 🚧 | Validate key technologies |
+
+**Inception Risks:**
+
+1. **Project Leyden availability** - Not yet GA
+   *Mitigation:* Can start with standard JVM, migrate to Leyden later
+
+2. **SnakeYAML Engine maturity** - YAML 1.2 support
+   *Mitigation:* Validate parsing capabilities early
+
+3. **Maven repository compatibility** - Can we resolve like Maven?
+   *Mitigation:* Spike with existing Maven resolver libraries
+
+4. **Performance targets** - Can we beat Gradle startup?
+   *Mitigation:* Benchmark early with prototype
+
+**Inception Exit Criteria:**
+- [ ] All stakeholders aligned on vision
+- [ ] Key technical risks addressed via spikes
+- [ ] Team confident in feasibility
+- [ ] Go/No-go decision for elaboration
+
+== Elaboration Phase
+
+**Goal:** Core architecture working, vertical slice functional.
+
+**Duration:** 3 weeks (1.5 iterations × 2 weeks)
+
+**Core Architecture Elements:**
+
+| Component | Description | Risk Level |
+|-----------|-------------|------------|
+| Configuration parser | YAML → internal model | Low |
+| Dependency resolver | Maven repository protocol | High |
+| Artifact cache | Local storage, content-addressed | Medium |
+| Lock file manager | Immutable, verifiable | Low |
+| Task engine | Dependency graph, incremental | High |
+| Plugin loader | Module isolation (JPMS) | Medium |
+
+**Vertical Slice (End-to-End):**
+
+Demonstrate:
+1. `kalix.yaml` with one dependency
+2. `klx fetch` downloads it
+3. `klx build` compiles single Java file
+4. `klx test` runs single JUnit test
+5. `klx jar` produces JAR
+
+No multi-module, no incremental (rebuild everything), no fancy features.
+Just prove the core loop works.
+
+**Elaboration Exit Criteria:**
+- [ ] Vertical slice works
+- [ ] Architecture proven (no major unknowns)
+- [ ] Performance baseline established
+- [ ] Team ready for construction velocity
+
+== Construction Phase
+
+**Goal:** Demo, then MVP.
+
+**Duration:** 6 weeks (3 iterations × 2 weeks)
+
+| Iteration | Duration | Focus |
+|-----------|----------|-------|
+| C1 | Weeks 1-2 | Demo Core - Single module, basic incremental, wrapper, `klx add`, lock files |
+| C2 | Weeks 3-4 | Demo Polish - Scripts, test execution, JAR packaging, ~10 demo projects |
+| C3 | Weeks 5-6 | MVP Core - Multi-module, annotation processors, test fixtures, `pom.xml` generation |
+| C4 | Weeks 7-8 | MVP Dependencies - BOM imports, Maven migration, layered config |
+| C5 | Weeks 9-10 | MVP Security - PGP verification, reproducible builds, credential suppliers |
+| C6 | Weeks 11-12 | MVP Polish - Error messages, documentation, CI/CD examples, performance |
+
+**Construction Exit Criteria:**
+- [ ] spring-app-commons builds with Kalix
+- [ ] Documentation complete
+- [ ] Migration path from Maven documented
+- [ ] No critical bugs
+- [ ] 10+ external users providing feedback
+
+== Transition Phase
+
+**Goal:** Release preparation.
+
+**Duration:** 2 weeks (1 iteration × 2 weeks)
+
+| Activity | Description |
+|----------|-------------|
+| Beta program | Early adopters try MVP |
+| Documentation review | Complete, accurate docs |
+| Migration guides | Maven → Kalix, Gradle → Kalix |
+| Release notes | What's new, breaking changes |
+| Marketing | Blog posts, presentations |
+| Community setup | Discord/forum, issue templates |
+
+**Transition Exit Criteria:**
+- [ ] v1.0.0 tagged
+- [ ] Published to GitHub releases
+- [ ] Available via jbang
+- [ ] Homebrew/formula (optional)
+
+== Demo vs MVP vs Beyond (Feature Matrix)
 
 [cols="4,1,1,1"]
 |===
@@ -71,11 +190,6 @@ Beyond::
 | 
 | ✅
 
-| Scala compilation
-| 
-| 
-| ✅
-
 | **Dependency Management**
 | 
 | 
@@ -96,17 +210,7 @@ Beyond::
 | ✅
 | 
 
-| Version conflict resolution
-| Basic
-| ✅
-| 
-
 | BOM imports
-| 
-| ✅
-| 
-
-| Dependency exclusions
 | 
 | ✅
 | 
@@ -141,12 +245,7 @@ Beyond::
 | ✅
 | 
 
-| Scripts (`klx run-script`)
-| ✅
-| ✅
-| 
-
-| `klx tool` (ad-hoc)
+| Scripts
 | ✅
 | ✅
 | 
@@ -156,7 +255,7 @@ Beyond::
 | ✅
 | 
 
-| IDE plugins (basic)
+| IDE plugins
 | 
 | 
 | ✅
@@ -171,7 +270,7 @@ Beyond::
 | ✅
 | 
 
-| Layered config (`.config/kalix/`)
+| Layered config
 | Basic
 | ✅
 | 
@@ -180,11 +279,6 @@ Beyond::
 | 
 | ✅
 | 
-
-| Project templates
-| 
-| 
-| ✅
 
 | **Security & Trust**
 | 
@@ -207,11 +301,6 @@ Beyond::
 | 
 
 | DNS-based publishing verification
-| 
-| 
-| ✅
-
-| Transparency logs
 | 
 | 
 | ✅
@@ -251,11 +340,6 @@ Beyond::
 | ✅
 | 
 
-| GitHub Packages publishing
-| 
-| ✅
-| 
-
 | Container image build
 | 
 | 
@@ -276,16 +360,6 @@ Beyond::
 | 
 | ✅
 
-| Parallel downloads
-| ✅
-| ✅
-| 
-
-| Parallel task execution
-| 
-| ✅
-| 
-
 | Project Leyden optimization
 | 
 | 
@@ -293,90 +367,81 @@ Beyond::
 
 |===
 
-== Demo Release Goals
+== 5-Minute Demo Script
 
-Demonstrate that Kalix can:
-
-1. **Build a simple Java project** with dependencies
-2. **Add dependencies** with `klx add`
-3. **Work offline** after `klx fetch`
-4. **Use wrapper** for clone-and-go
-5. **Show speed advantage** vs Gradle cold start
-
-Target demo project:
-* Single module
-* ~10 dependencies
-* JUnit tests
-* Standard Maven layout
-
-== MVP Release Goals
-
-Production ready for:
-* Small to medium Java projects
-* Multi-module workspaces
-* Teams migrating from Maven
-* CI/CD integration
-
-Must have:
-* Stable core build (compile, test, package)
-* Reliable dependency resolution
-* Complete documentation
-* Migration guide from Maven
-* Basic IDE support (via generated pom.xml)
-
-== Beyond Release Goals
-
-Enterprise features:
-* Advanced caching (remote cache)
-* Full security model (DNS verification, transparency logs)
-* Multiple language support (Kotlin, Scala)
-* Container integration
-* Advanced IDE plugins
-* Gradle migration automation
-
-== Demo Script (5 Minutes)
+Target: Show the vision, get people excited.
 
 [source,bash]
 ----
-# 1. Clone and go
-git clone https://github.com/example/demo-project.git
+# Setup (before demo)
+# - Fresh VM/container
+# - No Java build tools installed
+# - Network available
+
+# 1. Clone and go (30 seconds)
+$ git clone https://github.com/example/demo-project.git
 cd demo-project
-./klx build  # Wrapper downloads klx automatically
+$ ./klx build
+> Downloading klx 1.0.0...
+> Resolving dependencies...
+> Compiling...
+> Tests: 5 passed
+> BUILD SUCCESSFUL
 
-# 2. Show incremental build is fast
-echo "// comment" >> src/main/java/App.java
-./klx build  # "UP-TO-DATE" for unchanged, fast incremental
+# 2. Show it's fast now (5 seconds)
+$ ./klx build
+> :compileJava UP-TO-DATE
+> :test UP-TO-DATE
+> BUILD SUCCESSFUL (0.8s)
 
-# 3. Add dependency
-./klx add org.slf4j:slf4j-api:2.0.9
-# Show kalix.yaml and kalix.lock updates
+# 3. Make change, show incremental (10 seconds)
+$ echo "// comment" >> src/main/java/App.java
+$ ./klx build
+> :compileJava (1 file)
+> :test UP-TO-DATE
+> BUILD SUCCESSFUL (1.2s)
 
-# 4. Work offline
-./klx fetch --all
-disconnect network
-./klx build  # Still works!
+# 4. Add dependency (15 seconds)
+$ ./klx add org.slf4j:slf4j-api:2.0.9
+> Added to kalix.yaml
+> Updated kalix.lock
+> Downloaded slf4j-api-2.0.9.jar
 
-# 5. Compare to Gradle
-cd ../gradle-project
-./gradlew build  # Slow cold start
-cd ../demo-project
-./klx build  # Fast!
+# 5. Work offline (20 seconds)
+$ ./klx fetch --all
+> 47 artifacts cached
+$ disconnect-network
+$ ./klx build
+> BUILD SUCCESSFUL (offline)
+
+# 6. Compare to Gradle (painful, skip in demo)
+# Just mention: "This is what used to take 30 seconds with Gradle"
 ----
 
 == Success Metrics
 
+Inception::
+* All stakeholders aligned ✅
+* Requirements documented ✅
+* Key risks identified 🚧
+
+Elaboration::
+* Vertical slice works
+* Architecture proven
+* Performance baseline < 5s cold start
+
 Demo::
 * Can build demo project in < 30 seconds (fresh clone)
-* Incremental build < 1 second
+* Incremental build < 2 seconds
 * Audience understands the vision
 
 MVP::
-* Can migrate spring-app-commons
+* spring-app-commons builds
 * Zero critical bugs
 * Documentation complete
-* 10+ external users providing feedback
+* 10+ external users
 
 Beyond::
 * Production at enterprise scale
 * Multiple language ecosystems
-* Ecosystem of third-party plugins
+* Ecosystem of plugins

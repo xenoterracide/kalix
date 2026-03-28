@@ -57,7 +57,7 @@ klx [global-options] <command> [command-options]
 | Flag            | Meaning                               |
 | --------------- | ------------------------------------- |
 | `--dry-run`     | Show what would happen, don't execute |
-| `--offline`     | Don't download dependencies           |
+| `--locked`      | Fail if lock file needs updates       |
 | `--rerun`       | Ignore cache, re-run tasks            |
 | `-v, --verbose` | More output                           |
 | `-q, --quiet`   | Less output                           |
@@ -138,13 +138,37 @@ Would execute:
   :jar
 ```
 
-### `--offline`
+### `klx sync` - Download Everything Upfront
+
+While Kalix downloads dependencies on demand, you may want to prefetch everything (e.g., before getting on a plane):
 
 ```bash
-$ klx --offline build
-Error: Dependency org.slf4j:slf4j-api:2.0.9 not in cache
-Run without --offline to download
+# Download all dependencies and tools for current project
+$ klx sync
+Resolving dependencies from kalix.lock...
+Downloading 47 artifacts...
+Downloading tools (checkstyle, ktlint, spotbugs)...
+Done. All dependencies cached in ~/.kalix/
+
+# Now all commands work without network
+$ klx build  # Uses cached artifacts, no network needed
 ```
+
+**Difference from Gradle's `--offline`:**
+
+| Tool      | Approach            | Behavior                                 |
+| --------- | ------------------- | ---------------------------------------- |
+| Gradle    | `--offline` flag    | Fail if not cached                       |
+| Maven     | `--offline` flag    | Fail if not cached                       |
+| **Kalix** | Downloads on demand | Always works if cached, downloads if not |
+| **Kalix** | `sync` command      | Proactive download, then work offline    |
+
+Kalix doesn't need `--offline` because:
+
+1. Downloads are automatic when needed
+2. Lock files ensure reproducibility
+3. Immutable versions mean downloads are safe
+4. `sync` command lets you prefetch when convenient
 
 ### `--rerun`
 

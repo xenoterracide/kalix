@@ -137,6 +137,39 @@ Kalix tracks inputs at the content level (SHA-256):
 
 If any input SHA changes, the task re-executes. Otherwise, it's UP-TO-DATE.
 
+### Early Dependency Resolution
+
+Kalix resolves and downloads dependencies **before** starting expensive work:
+
+```
+klx build
+├── Resolve dependencies (from lock file)
+│   └── Download missing artifacts
+├── Task graph analysis
+│   └── Determine what needs to build
+├── Execute tasks
+│   ├── compileJava
+│   ├── compileTestJava
+│   ├── test
+│   └── jar
+└── Report results
+```
+
+**Why this matters:**
+
+- Fail fast if dependencies are missing or invalid
+- Don't waste 5 minutes compiling only to fail on a missing artifact
+- Parallel downloads happen before CPU-intensive compilation
+- Network failures surface immediately, not mid-build
+
+**Comparison:**
+
+| Tool      | Dependency Resolution                           |
+| --------- | ----------------------------------------------- |
+| Maven     | At phase execution (can fail mid-build)         |
+| Gradle    | Configuration phase (before task execution)     |
+| **Kalix** | Before task graph execution (earliest possible) |
+
 ## Configuration
 
 Users don't define the task graph directly. They configure plugins that provide tasks:

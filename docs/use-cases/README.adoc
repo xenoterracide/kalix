@@ -35,6 +35,16 @@ This directory contains use case specifications for the Kalix build system, foll
 | Manage Shared Configuration
 | Team Lead / Build Engineer
 | Share build standards across projects
+
+| xref:uc-006-clone-and-go.adoc[UC-006]
+| Clone and Go
+| Developer
+| Clone repo and build immediately without setup
+
+| xref:uc-007-work-offline.adoc[UC-007]
+| Work Offline
+| Developer
+| Proactive offline preparation for unreliable network
 |===
 
 == Real-World Context

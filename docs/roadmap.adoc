@@ -51,21 +51,19 @@ Transition::
 
 | # | Assumption | Impact if Wrong | Validation |
 |---|------------|-----------------|------------|
-| A1 | YAML 1.2 is expressive enough for all build scenarios | We'd need embedded scripting or abandon YAML | Spike: Model complex scenarios (annotation processors, feature variants) |
-| A2 | JPMS can isolate plugins without breaking libraries | Plugin classpath hell returns, core value prop lost | Spike: Load conflicting plugin versions in same process |
-| A3 | Maven repository protocol is implementable without Maven | Can't resolve dependencies, project fails | Spike: Resolve single artifact with HTTP + parsing |
-| A4 | Content-addressable caching enables fast incremental builds | Builds slower than Gradle, adoption fails | Spike: Benchmark file hashing vs Gradle's approach |
-| A5 | Sub-5-second cold start is achievable | Core differentiator lost | Spike: Measure startup with minimal config parsing |
-| A6 | Project Leyden will eventually ship | Long-term performance strategy invalid | Monitor Leyden EA releases |
+| A1 | Gradle's dependency resolver can be extracted/reused | Must build from scratch (months of work) | Spike: Analyze Gradle source, identify resolver module boundaries |
+| A2 | JPMS provides "loud failure" for plugin conflicts | Silent runtime errors, same as Gradle | Spike: Attempt to load conflicting plugin versions, verify clear error |
+| A3 | Content-addressable caching enables fast incremental builds | Builds slower than Gradle, adoption fails | Spike: Benchmark file hashing vs Gradle's approach |
+| A4 | Sub-5-second cold start is achievable | Core differentiator lost | Spike: Measure startup with minimal config parsing |
+| A5 | Project Leyden will eventually ship | Long-term performance strategy invalid | Monitor Leyden EA releases |
 
 **Hard Parts (require validation in Elaboration):**
 
-1. **Transitive Dependency Resolution**
-   - Version conflict resolution (nearest definition, force)
-   - Exclusions handling
-   - BOM (Bill of Materials) imports
-   - Optional dependencies
-   - *Question:* Can we reuse Maven Resolver or must we implement?
+1. **Gradle Dependency Resolver Integration**
+   - Gradle's resolver is tightly coupled to Gradle internals
+   - Can we extract just the resolution logic?
+   - Alternative: Maven Resolver + our own Ivy-style DSL layer
+   - *Decision needed:* Reuse Gradle's, reuse Maven's, or hybrid?
 
 2. **Correct Incremental Builds**
    - Detecting when annotation processors change outputs
@@ -73,15 +71,14 @@ Transition::
    - Parallel task execution with proper input/output isolation
    - *Question:* Is timestamp + SHA-256 sufficient? Do we need file system watching?
 
-3. **Plugin Isolation**
-   - Each plugin in its own module layer
-   - Plugins depending on other plugins
-   - Kotlin compiler plugin + Java compiler plugin coordination
-   - *Question:* Does JPMS layer API handle this or do we need custom class loading?
+3. **Plugin "Isolation" (Loud Failures)**
+   - JPMS won't load conflicting versions in same layer
+   - Value prop: Clear error at startup vs mysterious runtime failures
+   - Each plugin gets its own layer, but conflicts still fail
+   - *Question:* How to present plugin conflict errors clearly?
 
 4. **Maven Interop**
    - POM generation that Maven Central accepts
-   - Reading existing pom.xml for migration
    - Handling Maven-specific metadata (parent POMs, profiles)
    - *Question:* Can we generate valid POMs from YAML without lossy conversion?
 
@@ -106,6 +103,17 @@ kflix-demo/
 5. Second `klx build` says "UP-TO-DATE" and skips compilation
 6. Touch `App.java`, `klx build` recompiles only that file
 7. Total time for #2 < 10 seconds (cold), < 2 seconds (warm)
+
+**Technical Decisions to Make in Elaboration:**
+
+| Decision | Options | Criteria |
+|----------|---------|----------|
+| Dependency Resolver | A) Gradle's resolver (extracted), B) Maven Resolver + DSL, C) Implement from spec | Rich Ivy-style syntax (A or B), maintainability (B or C) |
+| Plugin Loading | Module layers with loud failure | Clear error messages when conflicts occur |
+| Incremental Tracking | SHA-256 + timestamps | Fast enough (<100ms for 1000 files), correct |
+| Config Model | YAML → Immutable Java objects | Type-safe, IDE-friendly |
+
+*Note:* "Stealing" Gradle's resolver likely means studying their implementation and adapting the approach, not literal code copying (GPL compatibility issues).
 
 **Explicitly OUT of vertical slice:**
 - Multi-module projects

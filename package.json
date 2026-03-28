@@ -15,15 +15,17 @@
   },
   "scripts": {
     "contribute": "git submodule update --init --recursive && uv sync --frozen && git config core.hooksPath .share/git/hooks",
-    "merge:copilot": "yarn workspace merge run merge:copilot",
-    "merge:junie": "yarn workspace merge run merge:junie",
-    "merge:kimi": "yarn workspace merge run merge:kimi",
-    "lint:prettier": "prettier --ignore-unknown --cache --check '**'",
-    "lint:reuse": "uv run --frozen --group dev reuse lint",
     "lint": "yarn lint:prettier && yarn lint:reuse",
+    "lint:prettier": "prettier --ignore-unknown --cache --check '**'",
+    "lint:reuse": "yarn reuse lint",
+    "merge:copilot": "cd .share && yarn workspace merge run merge:copilot",
+    "merge:junie": "cd .share && yarn workspace merge run merge:junie",
+    "merge:kimi": "cd .share && yarn workspace merge run merge:kimi",
+    "precontribute": "yarn setup:submodules && yarn setup:corepack && yarn setup:yarn",
+    "reuse": "uv run --frozen --group dev reuse",
+    "setup:corepack": "npm install -g corepack && corepack enable",
+    "setup:submodules": "git submodule update --init --recursive",
+    "setup:yarn": "yarn install --immutable && cd .share && yarn install --immutable",
     "test": "yarn workspaces foreach --all run test"
-  },
-  "workspaces": [
-    "node/packages/*"
-  ]
+  }
 }

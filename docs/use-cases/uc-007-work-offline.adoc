@@ -1,0 +1,193 @@
+// SPDX-FileCopyrightText: Copyright © 2024-2026 Caleb Cushing
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+= UC-007: Work Offline
+
+== Metadata
+
+[cols="1,3"]
+|===
+| Primary Actor | <<Developer>> with unreliable network
+| Scope | Kalix Build System - Offline Workflow
+| Level | User Goal
+| Trigger | Developer anticipates network unavailability
+|===
+
+== Stakeholders and Interests
+
+*<<Developer>>*::
+  Needs to continue development without network access.
+  Wants confidence that all dependencies are cached before going offline.
+  Should not discover missing artifacts mid-build.
+  May be in Antarctica, on a plane, or have spotty conference wifi.
+
+*<<Team Lead>>*::
+  Wants team productive regardless of network conditions.
+  Needs to ensure offline work doesn't bypass security checks.
+
+== Preconditions
+
+* Project has `kalix.yaml` and `kalix.lock`
+* Developer has network access (temporarily)
+
+== Postconditions
+
+=== Success Guarantee
+
+* All dependencies cached locally
+* All tools cached locally
+* Build works without network
+
+=== Minimal Guarantee
+
+* Clear report of what is and isn't cached
+* Ability to identify missing items before going offline
+
+== Main Success Scenario
+
+. [[step-anticipate,Developer anticipates offline period]] *Developer anticipates offline period* +
+  _Developer thinks: "I'm heading to Antarctica for research. The station has spotty internet during blizzards. I should cache everything now."_
+
+. [[step-fetch,Developer runs klx fetch]] *Developer runs klx fetch* +
+  _Developer runs `klx fetch --all` to download dependencies AND tools_
+
+. [[step-verify,System verifies cache completeness]] *System verifies cache completeness* +
+  _System checks that all items from lock file are cached,
+  reports any that couldn't be downloaded_
+
+. [[step-test-offline,Developer tests offline build]] *Developer tests offline build* +
+  _Developer disconnects network,
+  runs `klx build` to verify everything works,
+  build succeeds using cached artifacts_
+
+. [[step-confident,Developer works confidently offline]] *Developer works confidently offline* +
+  _Developer boards transport to Antarctica,
+  works productively despite blizzard-induced network outages_
+
+== Extensions (Alternative Flows)
+
+=== During <<step-verify>>: Some Items Missing
+
+*Condition:* Network interruption during fetch, or some artifacts not available
+
+*Steps:*
+. System reports: "Cached 45 of 47 artifacts"
+. Lists missing items with reasons
+. Suggests:
+** Retry when network improves
+** Accept partial (some builds may fail)
+** Check if missing artifacts are optional
+
+=== During <<step-test-offline>>: Build Fails
+
+*Condition:* Something still tries to reach network
+
+*Steps:*
+. Build fails with network error
+. System reports: "Attempted to download X but offline"
+. Developer checks if X is in `kalix.lock`
+. If not in lock file: run `klx update` then `klx fetch` again
+. If in lock file but not cached: bug report to Kalix team
+
+=== During <<step-anticipate>>: Partial Cache Strategy
+
+*Condition:* Limited time/bandwidth, can't download everything
+
+*Steps:*
+. Developer runs `klx fetch` (dependencies only, not tools)
+. Essential for build, smaller download
+. Tools downloaded on-demand when used
+. Risk: first use of tool requires network
+
+=== During <<step-fetch>>: Corporate Mirror Required
+
+*Condition:* Developer at company that requires internal artifact repository
+
+*Steps:*
+. `kalix.yaml` configured with corporate repository
+. `klx fetch` uses configured repositories
+. Corporate firewall/proxy settings respected
+
+== Technology and Data Variations
+
+=== What Gets Cached
+| Type | Location | Command |
+|------|----------|---------|
+| Dependencies | `~/.kalix/cache/` | `klx fetch` |
+| Tools | `~/.kalix/tools/` | `klx fetch --all` |
+| Wrapper | `~/.kalix/wrapper/` | Automatic on first use |
+
+=== Partial Cache Scenarios
+| Scenario | Command | Risk |
+|----------|---------|------|
+| Full offline | `klx fetch --all` | None |
+| Dependencies only | `klx fetch` | Tool download needed |
+| Current module only | `klx fetch --module api` | Other modules fail |
+
+=== Cache Inspection
+```bash
+# See what's cached
+klx cache list
+
+# See what's missing
+klx cache status
+
+# Verify offline readiness
+klx build --dry-run
+```
+
+== Special Requirements
+
+* `klx fetch` must report cache completeness clearly
+* Missing items must be identifiable before going offline
+* Cache must be portable (can copy to air-gapped machine)
+* No "phone home" telemetry that breaks offline builds
+* License: cached artifacts must respect original licenses
+
+== Comparison with Gradle/Maven
+
+| Tool | Offline Strategy | Pain Point |
+|------|------------------|------------|
+| Maven | `--offline` flag | Fails if not cached, no prefetch |
+| Gradle | `--offline` flag | Fails if not cached, no prefetch |
+| **Kalix** | `klx fetch --all` | Proactive, reports completeness |
+
+**Gradle/Maven pain:**
+```bash
+# On plane, try to build
+./gradlew build --offline
+# FAIL: Could not download org.example:lib:1.0.0
+# You should have run ./gradlew build before the flight
+# Too late now!
+```
+
+**Kalix solution:**
+```bash
+# Before flight
+klx fetch --all
+# "All 47 artifacts and 3 tools cached. Ready for offline work."
+
+# On plane
+klx build
+# Success! All cached.
+```
+
+== Frequency of Occurrence
+
+Varies by developer:
+- Daily: Commute with spotty mobile connection
+- Weekly: Flights, trains
+- Occasionally: Remote locations, conferences with bad wifi
+- Rarely: Antarctica research stations
+
+== Open Issues
+
+* [[cache-portability]] Can cache be copied to another machine (different OS/arch)?
+* [[cache-expiry]] Should cache have TTL for security updates?
+* [[selective-fetch]] Should `klx fetch` support "only these modules"?
+
+== Related Use Cases
+
+* xref:uc-001-developer-build-workflow.adoc[UC-001: Developer Build Workflow]
+* xref:uc-006-clone-and-go.adoc[UC-006: Clone and Go]

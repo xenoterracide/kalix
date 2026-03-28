@@ -1,0 +1,97 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Caleb Cushing
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Kalix Configuration for module/security-model
+# Compare to: module/security-model/build.gradle.kts
+
+#
+SPDX-FileCopyrightText: Copyright © 2023-2026 Caleb Cushing
+SPDX-License-Identifier: MIT
+
+# INHERITED FROM ROOT:
+# - group: com.xenoterracide
+# - version from git
+# - BOMs: jakarta, spring-boot, jmolecules, spring-modulith
+# - Exclusions: slf4j-nop, junit, etc.
+# - Resolution: reject pre-releases, capability resolution
+# - Module replacement: logback -> log4j2
+# - Dependencies: jspecify, jmolecules-layered-architecture, log4j2 starter
+# - Annotation processors: errorprone, nullaway
+# - Test dependencies: junit-jupiter, assertj
+# - Test suites: whitebox with ArchUnit
+
+# Additional plugins for this module
+plugins:
+  - io.kalix.jpamodel:2.0.0
+
+# Module dependencies
+# Note: Versions come from BOMs, no need to specify
+dependencies:
+  api:
+    - project:commons-jpa
+    - project:commons-model
+    - org.hibernate.orm:hibernate-envers
+    - jakarta.persistence:jakarta.persistence-api
+    - jakarta.validation:jakarta.validation-api
+    - org.springframework.data:spring-data-jpa
+
+  implementation:
+    - com.xenoterracide:tools:0.+
+
+  runtimeOnly:
+    - org.springframework.boot:spring-boot-starter-data-jpa
+
+  # Test fixtures - uses the testFixturesCompileOnly scope
+  testFixturesCompileOnly:
+    - jakarta.annotation:jakarta.annotation-api
+
+# JPA Model Generation
+# Replaces our.jpamodel.gradle.kts annotationProcessor config
+jpamodel:
+  processor: org.hibernate.orm:hibernate-jpamodelgen:6.+
+  options:
+    addSuppressWarningsAnnotation: deprecation,rawtypes,missing-explicit-ctor
+    addGeneratedAnnotation: true
+
+# Test configuration
+# Merges with root test config
+# Replaces our.jpamodel.gradle.kts testing { suites { } }
+test:
+  dependencies:
+    implementation:
+      - org.springframework:spring-beans
+      - org.springframework.boot:spring-boot-data-jpa-test
+      - org.springframework.boot:spring-boot-test-autoconfigure
+      - org.springframework:spring-test
+    runtimeOnly:
+      - com.h2database:h2:2.+
+      - project:test-app-core
+
+  # Additional whitebox dependencies (merges with root whitebox suite)
+  suites:
+    whitebox:
+      dependencies:
+        implementation:
+          - project:commons-jpa
+          - project:commons-model
+
+# PlantUML diagrams - replaces classDiagrams { ... } block
+# Using a script instead of complex plugin configuration
+tools:
+  plantuml:
+    uses: net.sourceforge.plantuml:plantuml:1.+
+    plugin: java-exec
+
+scripts:
+  generate-diagrams:
+    run: |
+      java -jar {{plantuml}} -tsvg \
+        -Djava.awt.headless=true \
+        diagrams/class.puml
+
+# Note: The classDiagrams DSL from Gradle plugin is custom
+# In Kalix, this would either be:
+# 1. A script (above)
+# 2. A dedicated plugin (io.kalix.plantuml) with configuration
+# 3. An external tool run via klx tool

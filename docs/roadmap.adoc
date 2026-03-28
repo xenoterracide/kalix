@@ -1,0 +1,382 @@
+// SPDX-FileCopyrightText: Copyright © 2024-2026 Caleb Cushing
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+= Kalix Roadmap
+
+This document defines the phases of Kalix development and what features belong in each phase.
+
+== Phase Definitions
+
+Demo::
+  Feature-complete enough to demonstrate the vision and get feedback.
+  Core workflows work for simple projects.
+  May have rough edges, limited edge case handling.
+
+MVP (Minimum Viable Product)::
+  Production-ready for small to medium projects.
+  Core features stable and tested.
+  Migration path from Maven/Gradle established.
+  Documentation complete for common use cases.
+
+Beyond::
+  Nice-to-have features that enhance the experience.
+  Enterprise features.
+  Performance optimizations.
+  Extended ecosystem integrations.
+
+== Feature Matrix
+
+[cols="4,1,1,1"]
+|===
+| Feature | Demo | MVP | Beyond
+
+| **Core Build**
+| 
+| 
+| 
+
+| Compile Java sources
+| ✅
+| ✅
+| 
+
+| Run tests (JUnit)
+| ✅
+| ✅
+| 
+
+| Package JAR
+| ✅
+| ✅
+| 
+
+| Incremental builds
+| Basic
+| ✅
+| 
+
+| Multi-module projects
+| 
+| ✅
+| 
+
+| Annotation processors
+| 
+| ✅
+| 
+
+| Kotlin compilation
+| 
+| 
+| ✅
+
+| Scala compilation
+| 
+| 
+| ✅
+
+| **Dependency Management**
+| 
+| 
+| 
+
+| Maven repository support
+| ✅
+| ✅
+| 
+
+| Lock files (mandatory)
+| ✅
+| ✅
+| 
+
+| `klx add` command
+| ✅
+| ✅
+| 
+
+| Version conflict resolution
+| Basic
+| ✅
+| 
+
+| BOM imports
+| 
+| ✅
+| 
+
+| Dependency exclusions
+| 
+| ✅
+| 
+
+| Gradle metadata support
+| 
+| 
+| ✅
+
+| **CLI & Workflow**
+| 
+| 
+| 
+
+| `./klx` wrapper
+| ✅
+| ✅
+| 
+
+| Global → wrapper delegation
+| 
+| ✅
+| 
+
+| jbang support
+| 
+| ✅
+| 
+
+| `klx fetch`
+| ✅
+| ✅
+| 
+
+| Scripts (`klx run-script`)
+| ✅
+| ✅
+| 
+
+| `klx tool` (ad-hoc)
+| ✅
+| ✅
+| 
+
+| Git hook integration
+| 
+| ✅
+| 
+
+| IDE plugins (basic)
+| 
+| 
+| ✅
+
+| **Configuration**
+| 
+| 
+| 
+
+| YAML configuration
+| ✅
+| ✅
+| 
+
+| Layered config (`.config/kalix/`)
+| Basic
+| ✅
+| 
+
+| JSON Schema for IDE
+| 
+| ✅
+| 
+
+| Project templates
+| 
+| 
+| ✅
+
+| **Security & Trust**
+| 
+| 
+| 
+
+| SHA-256 verification
+| ✅
+| ✅
+| 
+
+| PGP signature verification
+| 
+| ✅
+| 
+
+| Reproducible builds
+| 
+| ✅
+| 
+
+| DNS-based publishing verification
+| 
+| 
+| ✅
+
+| Transparency logs
+| 
+| 
+| ✅
+
+| **Migration & Interop**
+| 
+| 
+| 
+
+| `pom.xml` generation
+| 
+| ✅
+| 
+
+| Read `pom.xml` (migration)
+| 
+| ✅
+| 
+
+| Gradle migration guide
+| 
+| ✅
+| 
+
+| `klx migrate from-gradle`
+| 
+| 
+| ✅
+
+| **Publishing**
+| 
+| 
+| 
+
+| Maven Central publishing
+| 
+| ✅
+| 
+
+| GitHub Packages publishing
+| 
+| ✅
+| 
+
+| Container image build
+| 
+| 
+| ✅
+
+| **Performance**
+| 
+| 
+| 
+
+| Local build cache
+| Basic
+| ✅
+| 
+
+| Remote build cache
+| 
+| 
+| ✅
+
+| Parallel downloads
+| ✅
+| ✅
+| 
+
+| Parallel task execution
+| 
+| ✅
+| 
+
+| Project Leyden optimization
+| 
+| 
+| ✅
+
+|===
+
+== Demo Release Goals
+
+Demonstrate that Kalix can:
+
+1. **Build a simple Java project** with dependencies
+2. **Add dependencies** with `klx add`
+3. **Work offline** after `klx fetch`
+4. **Use wrapper** for clone-and-go
+5. **Show speed advantage** vs Gradle cold start
+
+Target demo project:
+* Single module
+* ~10 dependencies
+* JUnit tests
+* Standard Maven layout
+
+== MVP Release Goals
+
+Production ready for:
+* Small to medium Java projects
+* Multi-module workspaces
+* Teams migrating from Maven
+* CI/CD integration
+
+Must have:
+* Stable core build (compile, test, package)
+* Reliable dependency resolution
+* Complete documentation
+* Migration guide from Maven
+* Basic IDE support (via generated pom.xml)
+
+== Beyond Release Goals
+
+Enterprise features:
+* Advanced caching (remote cache)
+* Full security model (DNS verification, transparency logs)
+* Multiple language support (Kotlin, Scala)
+* Container integration
+* Advanced IDE plugins
+* Gradle migration automation
+
+== Demo Script (5 Minutes)
+
+[source,bash]
+----
+# 1. Clone and go
+git clone https://github.com/example/demo-project.git
+cd demo-project
+./klx build  # Wrapper downloads klx automatically
+
+# 2. Show incremental build is fast
+echo "// comment" >> src/main/java/App.java
+./klx build  # "UP-TO-DATE" for unchanged, fast incremental
+
+# 3. Add dependency
+./klx add org.slf4j:slf4j-api:2.0.9
+# Show kalix.yaml and kalix.lock updates
+
+# 4. Work offline
+./klx fetch --all
+disconnect network
+./klx build  # Still works!
+
+# 5. Compare to Gradle
+cd ../gradle-project
+./gradlew build  # Slow cold start
+cd ../demo-project
+./klx build  # Fast!
+----
+
+== Success Metrics
+
+Demo::
+* Can build demo project in < 30 seconds (fresh clone)
+* Incremental build < 1 second
+* Audience understands the vision
+
+MVP::
+* Can migrate spring-app-commons
+* Zero critical bugs
+* Documentation complete
+* 10+ external users providing feedback
+
+Beyond::
+* Production at enterprise scale
+* Multiple language ecosystems
+* Ecosystem of third-party plugins

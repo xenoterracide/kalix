@@ -34,36 +34,95 @@ Transition::
 
 == Inception Phase (Current)
 
-**Goal:** Vision clear, requirements documented, feasibility assessed.
+**Goal:** Vision clear, requirements documented, assumptions identified, feasibility assessed.
 
-**Status:** ✅ Mostly Complete (accelerated by AI)
+**Status:** 🚧 Requirements done, risks partially identified
 
 | Deliverable | Status | Notes |
 |-------------|--------|-------|
 | Vision document | ✅ | spec/01-vision.md |
 | Use cases (8) | ✅ | docs/use-cases/ |
 | Architecture overview | ✅ | spec/10-plugin-architecture.md |
-| Risk assessment | 🚧 | See Risks below |
-| Feasibility spike | 🚧 | Validate key technologies |
+| **Assumptions identified** | 🚧 | This section |
+| **Elaboration scope defined** | 🚧 | Vertical slice criteria |
+| Feasibility spikes | ⬜ | Not started |
 
-**Inception Risks:**
+**Critical Assumptions (could kill the project if wrong):**
 
-1. **Project Leyden availability** - Not yet GA
-   *Mitigation:* Can start with standard JVM, migrate to Leyden later
+| # | Assumption | Impact if Wrong | Validation |
+|---|------------|-----------------|------------|
+| A1 | YAML 1.2 is expressive enough for all build scenarios | We'd need embedded scripting or abandon YAML | Spike: Model complex scenarios (annotation processors, feature variants) |
+| A2 | JPMS can isolate plugins without breaking libraries | Plugin classpath hell returns, core value prop lost | Spike: Load conflicting plugin versions in same process |
+| A3 | Maven repository protocol is implementable without Maven | Can't resolve dependencies, project fails | Spike: Resolve single artifact with HTTP + parsing |
+| A4 | Content-addressable caching enables fast incremental builds | Builds slower than Gradle, adoption fails | Spike: Benchmark file hashing vs Gradle's approach |
+| A5 | Sub-5-second cold start is achievable | Core differentiator lost | Spike: Measure startup with minimal config parsing |
+| A6 | Project Leyden will eventually ship | Long-term performance strategy invalid | Monitor Leyden EA releases |
 
-2. **SnakeYAML Engine maturity** - YAML 1.2 support
-   *Mitigation:* Validate parsing capabilities early
+**Hard Parts (require validation in Elaboration):**
 
-3. **Maven repository compatibility** - Can we resolve like Maven?
-   *Mitigation:* Spike with existing Maven resolver libraries
+1. **Transitive Dependency Resolution**
+   - Version conflict resolution (nearest definition, force)
+   - Exclusions handling
+   - BOM (Bill of Materials) imports
+   - Optional dependencies
+   - *Question:* Can we reuse Maven Resolver or must we implement?
 
-4. **Performance targets** - Can we beat Gradle startup?
-   *Mitigation:* Benchmark early with prototype
+2. **Correct Incremental Builds**
+   - Detecting when annotation processors change outputs
+   - Handling non-file inputs (environment variables, system properties)
+   - Parallel task execution with proper input/output isolation
+   - *Question:* Is timestamp + SHA-256 sufficient? Do we need file system watching?
+
+3. **Plugin Isolation**
+   - Each plugin in its own module layer
+   - Plugins depending on other plugins
+   - Kotlin compiler plugin + Java compiler plugin coordination
+   - *Question:* Does JPMS layer API handle this or do we need custom class loading?
+
+4. **Maven Interop**
+   - POM generation that Maven Central accepts
+   - Reading existing pom.xml for migration
+   - Handling Maven-specific metadata (parent POMs, profiles)
+   - *Question:* Can we generate valid POMs from YAML without lossy conversion?
+
+**Elaboration Scope (Vertical Slice Definition):**
+
+Prove the core loop works end-to-end with a **single Java file project**:
+
+```
+kflix-demo/
+├── kalix.yaml          # One dependency: JUnit
+└── src/
+    ├── main/java/App.java      # Single class with main()
+    └── test/java/AppTest.java  # Single JUnit test
+```
+
+**Vertical Slice Acceptance Criteria:**
+
+1. `klx fetch` downloads JUnit from Maven Central
+2. `klx build` compiles `App.java` → `App.class`
+3. `klx test` runs `AppTest`, reports pass/fail
+4. `klx jar` produces `build/libs/demo.jar`
+5. Second `klx build` says "UP-TO-DATE" and skips compilation
+6. Touch `App.java`, `klx build` recompiles only that file
+7. Total time for #2 < 10 seconds (cold), < 2 seconds (warm)
+
+**Explicitly OUT of vertical slice:**
+- Multi-module projects
+- Annotation processors
+- Test fixtures
+- Lock files (use floating versions)
+- POM generation
+- Security verification
+- Scripts/tools
+- Git hooks
+- Wrapper
 
 **Inception Exit Criteria:**
-- [ ] All stakeholders aligned on vision
-- [ ] Key technical risks addressed via spikes
-- [ ] Team confident in feasibility
+- [ ] Stakeholders aligned on vision ✅
+- [x] All assumptions documented (A1-A6)
+- [x] Elaboration scope defined (vertical slice criteria)
+- [ ] Feasibility spikes complete (A1-A3 minimum)
 - [ ] Go/No-go decision for elaboration
 
 == Elaboration Phase

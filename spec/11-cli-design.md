@@ -642,3 +642,89 @@ klx build api service
 1. Should there be a `klx all` command that runs multiple phases explicitly?
 2. How do we handle people who really want `klx clean build` behavior? (shell alias?)
 3. Should we have a `--no-cache` flag for debugging (different from `--rerun`)?
+
+## Wrapper and Delegation
+
+### The ./klx Wrapper
+
+Kalix provides a wrapper script `./klx` (like `./gradlew` but better):
+
+```bash
+# Clone and go - no installation needed
+git clone git@github.com:company/project.git
+cd project
+./klx build  # Downloads klx automatically
+```
+
+**Wrapper behavior:**
+
+1. Check `kalix/wrapper/kalix-wrapper.properties` for version
+2. Download if not cached in `~/.kalix/wrapper/<version>/`
+3. Verify checksum
+4. Delegate to downloaded binary
+
+### Global Installation Delegates to Wrapper
+
+Unlike Gradle, **globally installed `klx` automatically delegates to `./klx` wrapper** (like Yarn):
+
+```bash
+# You have klx 2.0.0 installed globally
+klx --version  # 2.0.0
+
+cd ~/projects/my-project  # Has ./klx wrapper with version 1.5.0
+klx --version  # 1.5.0 (delegated to wrapper)
+./klx --version  # 1.5.0 (explicit wrapper)
+```
+
+**Benefits:**
+
+- Type `klx` or `./klx` interchangeably
+- Always use project-specified version
+- No "oops I used the wrong version" mistakes
+
+### jbang Support
+
+Kalix works with jbang for zero-install usage:
+
+```bash
+# Run without installing
+jbang klx@kalix build
+
+# Or install via jbang
+jbang app install klx@kalix
+klx build  # Now available in PATH
+```
+
+**For git hooks (the killer use case):**
+
+```bash
+#!/bin/sh
+# .git/hooks/pre-commit
+# Works even if klx not installed!
+jbang klx@kalix tool com.pinterest.ktlint:ktlint-cli:1.2.0 --git-pre-commit-hook
+```
+
+### Wrapper Script Locations
+
+| Platform   | Wrapper         | Cache                           |
+| ---------- | --------------- | ------------------------------- |
+| Unix/macOS | `./klx` (shell) | `~/.kalix/wrapper/`             |
+| Windows    | `./klx.bat`     | `%USERPROFILE%\.kalix\wrapper\` |
+| Universal  | `./klx` (jbang) | jbang cache                     |
+
+### Comparison
+
+| Tool      | Wrapper            | Global Delegates | jbang Support | Clone-and-Go |
+| --------- | ------------------ | ---------------- | ------------- | ------------ |
+| Make      | No                 | N/A              | ❌            | ❌           |
+| Maven     | `./mvnw`           | ❌ No            | ❌            | ✅           |
+| Gradle    | `./gradlew`        | ❌ No            | ❌            | ✅           |
+| Yarn      | `.yarn/releases/*` | ✅ Yes           | ❌            | ✅           |
+| **Kalix** | `./klx`            | ✅ Yes           | ✅ Yes        | ✅           |
+
+## Open Questions
+
+1. Should there be a `klx all` command that runs multiple phases explicitly?
+2. How do we handle people who really want `klx clean build` behavior? (shell alias?)
+3. Should we have a `--no-cache` flag for debugging (different from `--rerun`)?
+4. Should wrapper auto-update to latest patch version (configurable)?

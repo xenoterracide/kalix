@@ -607,54 +607,67 @@ Gradle and Maven make simple things hard:
 
 ## Command Resolution
 
-What happens when a script conflicts with a built-in command?
+Scripts provide custom commands. They **cannot** shadow built-in commands.
+
+### Reserved Commands
+
+These command names are reserved by Kalix core and **cannot** be used as script names:
+
+| Category              | Commands                                          |
+| --------------------- | ------------------------------------------------- |
+| Build lifecycle       | `build`, `compile`, `test`, `jar`, `run`, `clean` |
+| Dependency management | `update`, `fetch`, `add`                          |
+| Publishing            | `publish`                                         |
+| Verification          | `check`                                           |
+| Utility               | `version`, `help`                                 |
+
+### Error on Conflict
 
 ```yaml
 scripts:
-  build: echo "custom build" # Conflicts with klx build
+  build: echo "custom build" # ERROR: 'build' is a reserved command
 ```
-
-### Resolution Order
-
-1. **Script first** - User's scripts shadow built-ins
-2. **Built-in second** - If no script matches
-3. **Error if ambiguous** - Help the user
-
-```bash
-# Script shadows built-in
-klx build
-# Runs: echo "custom build"
-
-# Force built-in with --
-klx -- build
-# Runs: built-in build command
-
-# Or be explicit
-klx :build
-# Runs: built-in build command
-```
-
-### Why Allow Shadowing?
-
-Yarn allows it. Users expect it. The common case:
-
-```yaml
-scripts:
-  lint: ktlint src/main/kotlin
-  format: ktlint -F src/main/kotlin
-```
-
-No conflicts with built-ins. Just convenient shortcuts.
-
-### Conflict Detection
-
-If we want to be helpful:
 
 ```bash
 $ klx build
-Warning: Script 'build' shadows built-in command.
-Use 'klx :build' for the built-in or 'klx -- build' to disambiguate.
+Error: Script 'build' conflicts with built-in command.
+
+Built-in commands cannot be overridden. Choose a different name:
+  scripts:
+    my-build: echo "custom build"
+
+Then run: klx my-build
 ```
+
+### Valid Script Names
+
+Script names must:
+
+- Not match reserved commands (case-sensitive)
+- Use lowercase letters, numbers, hyphens
+- Start with a letter
+
+```yaml
+scripts:
+  # Valid - no conflict
+  lint: ktlint src/main/kotlin
+  format: ktlint -F src/main/kotlin
+  ci-check: klx check && klx test
+
+  # Invalid - reserved words
+  build: echo "no" # ERROR: reserved
+  test-integration: ... # OK: 'test-integration' != 'test'
+```
+
+### Why Prevent Shadowing?
+
+Unlike Yarn/npm where `yarn run` is a meta-command that executes scripts, Kalix's `klx run` is a core command that runs the compiled application. Allowing shadowing would:
+
+1. Break core functionality unpredictably
+2. Confuse team members ("why does `klx build` do something weird?")
+3. Make documentation unreliable
+
+Explicit error > silent surprising behavior.
 
 ## Subproject Selection
 
@@ -670,12 +683,6 @@ klx build api
 # Build api and service
 klx build api service
 ```
-
-## Open Questions
-
-1. Should there be a `klx all` command that runs multiple phases explicitly?
-2. Should we provide a `klx rebuild` convenience command (clean + build)?
-3. Should we have a `--no-cache` flag for debugging (different from `--rerun`)?
 
 ## Wrapper and Delegation
 

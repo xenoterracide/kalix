@@ -73,14 +73,15 @@ klx [global-options] <command> [command-options]
 | `clean`    | Delete build outputs               |
 | `update`   | Update dependencies and lock file  |
 | `check`    | Run all verification (lint, etc.)  |
-| `run`      | **Execute a script or tool**       |
-| `tool`     | **Execute a tool or ad-hoc GAV**   |
+| `run`      | **Execute a defined script**       |
+| `exec`     | **Execute a binary from a tool**   |
+| `tool`     | **Execute ad-hoc tool by GAV**     |
 | `publish`  | Publish to repository              |
 
 **Note:** There is no `run-the-application` command. Running an application is:
 
 - A plugin concern (e.g., `io.kalix.spring-boot` plugin provides `klx spring-boot run`)
-- Or a script: `klx run start` where `scripts.start: java -jar build/libs/app.jar`
+- Or a script: `klx run start` where `scripts.start: klx exec java -jar build/libs/app.jar`
 
 ## Clean is for Debugging
 
@@ -204,25 +205,20 @@ klx --rerun build
 | Gradle    | Yes       | `gradle clean build`     |
 | **Kalix** | **No**    | `klx clean && klx build` |
 
-## `klx run` - Execute Scripts and Tools
+## `klx run` - Execute Scripts
 
-Unlike npm's `run` which is a meta-command, Kalix's `run` **executes scripts and tools directly**:
+Execute user-defined scripts from `kalix.yaml`:
 
 ```bash
 # Run a script
 klx run dev
 klx run test-integration
-
-# Run a tool
-klx run prettier --check 'src/**/*.java'
-
-# Pass arguments naturally
 klx run server --port 8080 --debug
 ```
 
 ### Why No `run-the-application` Command?
 
-npm, yarn, and uv use `run` to execute things - not specifically "the application". This is because:
+npm, yarn, and uv use `run` to execute scripts - not specifically "the application". This is because:
 
 - **Libraries** don't have applications to run
 - **Multiple apps** may exist in one project
@@ -233,39 +229,11 @@ npm, yarn, and uv use `run` to execute things - not specifically "the applicatio
 klx spring-boot run
 
 # Application via script
-klx run start  # Where scripts.start: java -jar build/libs/app.jar
+klx run start  # Where scripts.start: klx exec java -jar build/libs/app.jar
 
 # Multiple applications
 klx run server  # Start server
 klx run cli --input data.csv  # Run CLI tool
-```
-
-### Command Arguments Flow Naturally
-
-Single command design means arguments flow naturally:
-
-```bash
-# Gradle - horrible
-gradle run --args="arg1 arg2"
-
-# Kalix - simple
-klx run my-script arg1 arg2
-klx run server --port 8080
-```
-
-### Facilitates Aliases
-
-```bash
-# Shell alias for common script
-alias kdev='klx run dev'
-kdev --port 8080  # Runs: klx run dev --port 8080
-
-# Kalix alias (in kalix.yaml)
-aliases:
-  serve: run server --port 8080
-
-# Then
-klx serve  # Runs: klx run server --port 8080
 ```
 
 ### Script Arguments
@@ -289,6 +257,53 @@ klx run test-watch --tests "*Integration"
 ```
 
 No `--args="..."` wrapper. No special parsing. Just append and execute.
+
+## `klx exec` - Execute Tool Binaries
+
+Execute binaries provided by tools, added to a managed PATH:
+
+```yaml
+tools:
+  node-22:
+    plugin: node
+    version: 22.0.0
+    provides: [node, npm, npx, corepack]
+```
+
+```bash
+# Run npm from node-22 tool
+klx exec npm install
+
+# Run node
+klx exec node server.js
+
+# Ambiguous? Be explicit
+klx exec node-22 npm install
+klx exec node-20 npm install
+```
+
+### Conflict Resolution
+
+If multiple tools provide the same binary:
+
+```bash
+klx exec npm
+Error: Ambiguous binary 'npm' provided by multiple tools:
+  - node-20
+  - node-22
+
+Use explicit tool name:
+  klx exec node-22 npm install
+  klx exec node-20 npm install
+```
+
+Scripts handle the common case without ambiguity:
+
+```yaml
+scripts:
+  lint: klx exec prettier --check 'src/'
+  dev: klx exec npm run dev
+```
 
 ## Tools and Scripts
 
@@ -610,10 +625,10 @@ These command names are reserved by Kalix core and **cannot** be used as script 
 | Dependency management | `update`, `fetch`, `add`                        |
 | Publishing            | `publish`                                       |
 | Verification          | `check`                                         |
-| Execution             | `run`, `tool`                                   |
+| Execution             | `run`, `exec`, `tool`                           |
 | Utility               | `version`, `help`                               |
 
-**Note:** `run` and `tool` are reserved as **verbs** that execute things, not as targets. Application running is a plugin concern.
+**Note:** `run`, `exec`, and `tool` are reserved as **verbs** that execute things, not as targets.
 
 ### Error on Conflict
 

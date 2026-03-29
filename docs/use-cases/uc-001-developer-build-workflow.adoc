@@ -145,8 +145,9 @@
 * `klx build` - full build with tests
 * `klx compile` - compile only, no tests
 * `klx test` - compile and test
-* `klx jar` - compile and package, no tests
+* `klx assemble` - package artifacts, no tests
 * `klx run <script>` - execute a defined script
+* `klx exec <binary>` - execute a tool binary
 
 === Source Layouts Supported
 * Maven standard (`src/main/java`, `src/test/java`)

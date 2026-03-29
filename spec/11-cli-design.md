@@ -277,10 +277,21 @@ klx exec npm install
 # Run node
 klx exec node server.js
 
-# Ambiguous? Be explicit
-klx exec node-22 npm install
-klx exec node-20 npm install
+# Ambiguous? Use namespace prefix
+klx exec :node-22 npm install
 ```
+
+### Namespace Prefix (`:`)
+
+For unambiguous parsing, use `:` prefix to specify the tool namespace:
+
+```bash
+# Format: klx exec :<tool> <binary> [args...]
+klx exec :node-22 npm install
+klx exec :node-20 npm install
+```
+
+The `:` makes it clear where the tool name ends and the binary name begins, simplifying argument parsing.
 
 ### Conflict Resolution
 
@@ -292,9 +303,9 @@ Error: Ambiguous binary 'npm' provided by multiple tools:
   - node-20
   - node-22
 
-Use explicit tool name:
-  klx exec node-22 npm install
-  klx exec node-20 npm install
+Use namespace prefix:
+  klx exec :node-22 npm install
+  klx exec :node-20 npm install
 ```
 
 Scripts handle the common case without ambiguity:

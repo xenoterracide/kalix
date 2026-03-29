@@ -64,19 +64,20 @@ klx [global-options] <command> [command-options]
 
 ### Commands
 
-| Command    | Purpose                            |
-| ---------- | ---------------------------------- |
-| `build`    | Full build: compile, test, package |
-| `assemble` | Package artifacts only (no tests)  |
-| `compile`  | Compile only, no tests or package  |
-| `test`     | Run tests                          |
-| `clean`    | Delete build outputs               |
-| `update`   | Update dependencies and lock file  |
-| `check`    | Run all verification (lint, etc.)  |
-| `run`      | **Execute a defined script**       |
-| `exec`     | **Execute a binary from a tool**   |
-| `tool`     | **Execute ad-hoc tool by GAV**     |
-| `publish`  | Publish to repository              |
+| Command    | Purpose                                 |
+| ---------- | --------------------------------------- |
+| `build`    | Full build: compile, test, package      |
+| `assemble` | Package all artifacts (JARs, etc.)      |
+| `jar`      | Create JAR only (shortcut for assemble) |
+| `compile`  | Compile only, no tests or package       |
+| `test`     | Run tests                               |
+| `clean`    | Delete build outputs                    |
+| `update`   | Update dependencies and lock file       |
+| `check`    | Run all verification (lint, etc.)       |
+| `run`      | **Execute a defined script**            |
+| `exec`     | **Execute a binary from a tool**        |
+| `tool`     | **Execute ad-hoc tool by GAV**          |
+| `publish`  | Publish to repository                   |
 
 **Note:** There is no `run-the-application` command. Running an application is:
 
@@ -630,14 +631,14 @@ Scripts provide custom commands. They **cannot** shadow built-in commands.
 
 These command names are reserved by Kalix core and **cannot** be used as script or tool names:
 
-| Category              | Commands                                        |
-| --------------------- | ----------------------------------------------- |
-| Build lifecycle       | `build`, `assemble`, `compile`, `test`, `clean` |
-| Dependency management | `update`, `fetch`, `add`                        |
-| Publishing            | `publish`                                       |
-| Verification          | `check`                                         |
-| Execution             | `run`, `exec`, `tool`                           |
-| Utility               | `version`, `help`                               |
+| Category              | Commands                                               |
+| --------------------- | ------------------------------------------------------ |
+| Build lifecycle       | `build`, `assemble`, `jar`, `compile`, `test`, `clean` |
+| Dependency management | `update`, `fetch`, `add`                               |
+| Publishing            | `publish`                                              |
+| Verification          | `check`                                                |
+| Execution             | `run`, `exec`, `tool`                                  |
+| Utility               | `version`, `help`                                      |
 
 **Note:** `run`, `exec`, and `tool` are reserved as **verbs** that execute things, not as targets.
 

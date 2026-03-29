@@ -488,32 +488,43 @@ steps:
 
 ### Reproducibility on Failure
 
-When a non-locked strategy fails, Kalix captures the exact resolved state:
+When a non-locked strategy fails, Kalix generates a **reproduction lock file**:
 
-````bash
+```bash
 $ klx test --version-strategy random
 FAILURE: Test failed with random version selection
 
-Resolved versions (save this for reproduction):
-```json
-{
-  "strategy": "random",
-  "timestamp": "2026-03-28T15:30:00Z",
-  "resolved": {
-    "org.springframework:spring-core": "8.7.3",
-    "org.slf4j:slf4j-api": "2.0.16",
-    "com.example:lib": "3.2.1"
-  }
-}
-````
+Generated reproduction lock file:
+  kalix-random-failure-20260328-153022.lock
 
 Reproduce this exact failure:
-klx test \
- --version-override org.springframework:spring-core:8.7.3 \
- --version-override org.slf4j:slf4j-api:2.0.16 \
- --version-override com.example:lib:3.2.1
+  klx test --lock-file kalix-random-failure-20260328-153022.lock
+```
 
-````
+The main `kalix.lock` is **never modified** by version strategies.
+
+### Custom Lock Files
+
+Use `--lock-file` to test against specific lock files:
+
+```bash
+# Use specific lock file
+klx build --lock-file production.lock
+
+# CI saves failing states
+klx test --version-strategy random || \
+  mv kalix-random-failure-*.lock build-reports/
+
+# Reproduce a reported failure
+klx test --lock-file kalix-random-failure-20260328-153022.lock
+```
+
+This enables:
+
+- **CI artifacts**: Save failing lock files for debugging
+- **Bug reports**: Attach lock file to reproduce exactly
+- **Bisecting**: Test against multiple historical lock files
+- **Staging**: Test against production lock file before deploy
 
 ### Strategy Details
 
@@ -524,8 +535,8 @@ Picks a random version from the acceptable range:
 ```yaml
 # kalix.yaml
 dependencies:
-  - org.example:lib:8.x  # Could resolve to 8.0.0, 8.5.2, 8.99.99...
-````
+  - org.example:lib:8.x # Could resolve to 8.0.0, 8.5.2, 8.99.99...
+```
 
 Each run gets a different random version within bounds. Run multiple times for coverage.
 

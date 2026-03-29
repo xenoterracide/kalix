@@ -455,7 +455,7 @@ dependencies:
   development:
     - org.springframework.boot:spring-boot-devtools:3.2.0:
         # DevTools is:
-        # - On classpath during development (klt run, klt test)
+        # - On classpath during development (klx run, klx test)
         # - NOT in production JAR
         # - NOT transitive to consumers
         scope: [development, non-transitive]

@@ -132,7 +132,7 @@
 
 === During <<step-initiate>>: Clean Build Requested
 
-*Condition:* Developer runs `klx clean && klx build` or `klx --clean build`
+*Condition:* Developer runs `klx clean && klx build`
 
 *Steps:*
 . System removes all build outputs

@@ -118,12 +118,12 @@ Simple. Destructive. For debugging only.
 
 | Tool      | Chaining? | Example                      | Kalix Equivalent          |
 | --------- | --------- | ---------------------------- | ------------------------- |
-| Make      | Yes       | `make clean build`           | `klx --clean build`       |
-| Maven     | Yes       | `mvn clean install`          | `klx --clean build`       |
-| Gradle    | Yes       | `gradle clean build`         | `klx --clean build`       |
+| Make      | Yes       | `make clean build`           | `klx clean && klx build`  |
+| Maven     | Yes       | `mvn clean install`          | `klx clean && klx build`  |
+| Gradle    | Yes       | `gradle clean build`         | `klx clean && klx build`  |
 | Git       | **No**    | `git commit && git push`     | (encourages explicitness) |
-| Cargo     | **No**    | `cargo clean && cargo build` | `klx --clean build`       |
-| **Kalix** | **No**    | N/A                          | `klx --clean build`       |
+| Cargo     | **No**    | `cargo clean && cargo build` | `klx clean && klx build`  |
+| **Kalix** | **No**    | N/A                          | `klx clean && klx build`  |
 
 ## Other Global Flags
 
@@ -674,7 +674,7 @@ klx build api service
 ## Open Questions
 
 1. Should there be a `klx all` command that runs multiple phases explicitly?
-2. How do we handle people who really want `klx clean build` behavior? (shell alias?)
+2. Should we provide a `klx rebuild` convenience command (clean + build)?
 3. Should we have a `--no-cache` flag for debugging (different from `--rerun`)?
 
 ## Wrapper and Delegation
@@ -759,6 +759,6 @@ jbang klx@kalix tool com.pinterest.ktlint:ktlint-cli:1.2.0 --git-pre-commit-hook
 ## Open Questions
 
 1. Should there be a `klx all` command that runs multiple phases explicitly?
-2. How do we handle people who really want `klx clean build` behavior? (shell alias?)
+2. Should we provide a `klx rebuild` convenience command (clean + build)?
 3. Should we have a `--no-cache` flag for debugging (different from `--rerun`)?
 4. Should wrapper auto-update to latest patch version (configurable)?

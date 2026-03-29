@@ -418,6 +418,157 @@ Once published, a version **cannot be modified or deleted**:
 | Delete version          | **Not supported**                                         |
 | "Yank"/suppress version | Supported - marked as vulnerable/bad                      |
 
+## Version Testing Strategies (CPAN Testers Style)
+
+Library authors need to test against multiple dependency versions to ensure compatibility. Kalix provides **version testing strategies** for CI matrix builds.
+
+### Built-in Strategies
+
+| Strategy         | Behavior                               | Use Case                            |
+| ---------------- | -------------------------------------- | ----------------------------------- |
+| `lock` (default) | Use `kalix.lock` exactly               | Reproducible builds                 |
+| `latest`         | Latest version matching declared range | Verify still works with newest deps |
+| `random`         | Random version from acceptable range   | Probabilistic coverage              |
+| `snapshot`       | Include SNAPSHOT versions              | Test against bleeding edge          |
+| `prerelease`     | Include alpha/beta/RC versions         | Early compatibility testing         |
+| `next`           | Next major version (8.x → 9.x)         | Future compatibility                |
+
+### Usage
+
+```bash
+# Default: use locked versions
+klx test
+
+# Test with latest versions in declared ranges
+klx test --version-strategy latest
+
+# Random version selection for probabilistic testing
+klx test --version-strategy random
+
+# Include SNAPSHOT builds
+klx test --version-strategy snapshot
+
+# Test against next major version
+# If you declared 8.x, this tests against 9.x
+klx test --version-strategy next
+
+# Combine strategies
+klx test --version-strategy "latest,snapshot"
+```
+
+### Explicit Version Overrides
+
+Override specific dependencies for targeted testing:
+
+```bash
+# Force specific version for one dependency
+klx test --version-override org.springframework:spring-core:6.2.0-RC1
+
+# Multiple overrides
+klx test \
+  --version-override org.springframework:spring-core:6.2.0-RC1 \
+  --version-override org.slf4j:slf4j-api:2.1.0-SNAPSHOT
+```
+
+### CI Matrix Example
+
+```yaml
+# .github/workflows/matrix.yml
+strategy:
+  matrix:
+    version-strategy: [lock, latest, random, next]
+    include:
+      # Weekly snapshot test
+      - version-strategy: snapshot
+        cron: "0 0 * * 0"
+
+steps:
+  - run: klx test --version-strategy ${{ matrix.version-strategy }}
+```
+
+### Reproducibility on Failure
+
+When a non-locked strategy fails, Kalix captures the exact resolved state:
+
+````bash
+$ klx test --version-strategy random
+FAILURE: Test failed with random version selection
+
+Resolved versions (save this for reproduction):
+```json
+{
+  "strategy": "random",
+  "timestamp": "2026-03-28T15:30:00Z",
+  "resolved": {
+    "org.springframework:spring-core": "8.7.3",
+    "org.slf4j:slf4j-api": "2.0.16",
+    "com.example:lib": "3.2.1"
+  }
+}
+````
+
+Reproduce this exact failure:
+klx test \
+ --version-override org.springframework:spring-core:8.7.3 \
+ --version-override org.slf4j:slf4j-api:2.0.16 \
+ --version-override com.example:lib:3.2.1
+
+````
+
+### Strategy Details
+
+#### `random` Strategy
+
+Picks a random version from the acceptable range:
+
+```yaml
+# kalix.yaml
+dependencies:
+  - org.example:lib:8.x  # Could resolve to 8.0.0, 8.5.2, 8.99.99...
+````
+
+Each run gets a different random version within bounds. Run multiple times for coverage.
+
+#### `next` Strategy
+
+Tests compatibility with next major version:
+
+```yaml
+# Your declared dependency
+dependencies:
+  - org.springframework:spring-core:8.x
+```
+
+```bash
+$ klx test --version-strategy next
+# Resolves to latest 9.x.x to verify future compatibility
+```
+
+This is particularly useful for library authors who want to ensure their code works with upcoming major versions of their dependencies.
+
+#### `snapshot` Strategy
+
+Allows resolution of Maven SNAPSHOT versions:
+
+```bash
+$ klx test --version-strategy snapshot
+Resolving SNAPSHOT: org.example:lib:1.0-SNAPSHOT
+Downloaded: lib-1.0-20260328.143000-47.jar
+```
+
+**Warning:** SNAPSHOTs change between runs. Only use in CI, never for releases.
+
+### Comparison: CPAN Testers
+
+| Feature              | CPAN Testers     | Kalix                  |
+| -------------------- | ---------------- | ---------------------- |
+| Matrix testing       | ✓ Yes            | ✓ `--version-strategy` |
+| Random versions      | ✓ Yes            | ✓ `random` strategy    |
+| Report failures      | ✓ Public reports | ✓ JSON dump            |
+| Reproduce failures   | Via reports      | `--version-override`   |
+| Snapshot testing     | N/A              | ✓ `snapshot` strategy  |
+| Next version testing | N/A              | ✓ `next` strategy      |
+
 ### Idempotent Publishing
 
 ```bash

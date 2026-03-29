@@ -102,6 +102,50 @@ record Bar(String foo) {
 }
 ```
 
+## Use What's Already On The Classpath
+
+**Before writing any code, check if the functionality already exists in your dependencies.**
+
+If Guava's `Strings`, Apache Commons, or the JDK already has it → **use it**. Period.
+
+```java
+// BAD - even though it's "just" one line
+if (str == null) {
+    throw new NullPointerException("str must not be null");
+}
+
+// GOOD - it's already there, use it
+Objects.requireNonNull(str);
+```
+
+### The Rule Is Simple
+
+| Is it in your deps? | Action                          |
+| ------------------- | ------------------------------- |
+| Yes                 | Use it, no matter how "trivial" |
+| No                  | Then consider writing it        |
+
+### Check First
+
+Use the **javadocs MCP server** to search available classes before implementing:
+
+- `Strings` (Guava or Commons Lang3)
+- `Preconditions` / `Validate` (Guava / Commons Lang3)
+- `ObjectUtils` / `Objects` (Commons Lang3 / JDK)
+- `CollectionUtils` / `Iterables` / `Streams`
+
+### Benefits
+
+- **Zero additional dependencies** - it's already there!
+- **Less code to maintain** - delete your custom version
+- **Standard behavior** - what other developers expect
+- **Battle-tested** - edge cases already handled
+
+### Only Write Your Own When...
+
+- The functionality truly doesn't exist in any on-classpath library
+- You need behavior that's fundamentally different from available options
+
 ---
 
 SPDX-FileCopyrightText: Copyright © 2026 Caleb Cushing

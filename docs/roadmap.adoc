@@ -52,7 +52,7 @@ Transition::
 | # | Assumption | Impact if Wrong | Validation |
 |---|------------|-----------------|------------|
 | A1 | Gradle's dependency resolver can be extracted/reused | Must build from scratch (months of work) | Spike: Analyze Gradle source, identify resolver module boundaries |
-| A2 | JPMS provides "loud failure" for plugin conflicts | Silent runtime errors, same as Gradle | Spike: Attempt to load conflicting plugin versions, verify clear error |
+| A2 | JPMS encapsulation + our conflict detection gives better errors | Silent runtime errors, same as Gradle | Spike: Load plugins with internal deps, verify encapsulation works; detect version conflicts early |
 | A3 | Content-addressable caching enables fast incremental builds | Builds slower than Gradle, adoption fails | Spike: Benchmark file hashing vs Gradle's approach |
 | A4 | Sub-5-second cold start is achievable | Core differentiator lost | Spike: Measure startup with minimal config parsing |
 | A5 | Project Leyden will eventually ship | Long-term performance strategy invalid | Monitor Leyden EA releases |
@@ -71,11 +71,13 @@ Transition::
    - Parallel task execution with proper input/output isolation
    - *Question:* Is timestamp + SHA-256 sufficient? Do we need file system watching?
 
-3. **Plugin "Isolation" (Loud Failures)**
-   - JPMS won't load conflicting versions in same layer
-   - Value prop: Clear error at startup vs mysterious runtime failures
-   - Each plugin gets its own layer, but conflicts still fail
-   - *Question:* How to present plugin conflict errors clearly?
+3. **Plugin Isolation Model**
+   - JPMS provides strong encapsulation (plugins can't poke each other's internals)
+   - JPMS does NOT prevent version conflicts (two plugins using different Guava versions)
+   - Loud failure: Detect conflicts early, fail with clear message at startup
+   - Future option: "Bundled" common libraries (Guava, etc.) that plugins can rely on
+   - Or: Tell users to shade conflicting dependencies (Gradle's stance)
+   - *Question:* Can we detect version conflicts and report them clearly?
 
 4. **Maven Interop**
    - POM generation that Maven Central accepts

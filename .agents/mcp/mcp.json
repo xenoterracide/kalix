@@ -1,1 +1,7 @@
-{}
+{
+  "mcpServers": {
+    "javadocs": {
+      "url": "https://mcp.javadocs.dev/"
+    }
+  }
+}

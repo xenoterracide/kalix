@@ -20,6 +20,7 @@ These principles apply to all programming tasks regardless of language or framew
 ### Anti-patterns (Never Do This)
 
 **Empty catch blocks:**
+
 ```java
 // BAD - exception is silently lost
 try {
@@ -32,6 +33,7 @@ try {
 ### Correct Approaches
 
 **Rethrow when you cannot handle it:**
+
 ```java
 // GOOD - rethrow to let caller handle
 try {
@@ -42,6 +44,7 @@ try {
 ```
 
 **Log when you need to continue:**
+
 ```java
 // GOOD - log with context before continuing
 try {
@@ -70,12 +73,14 @@ try {
 Before considering any task complete, run the relevant tests. See the `testing` skill for detailed guidance on test philosophy and patterns.
 
 **Key principles:**
+
 - Prefer **sociable tests** (real collaborators) over **solitary tests** (mocks)
 - Prefer **narrow integration tests** (test one integration point) over broad end-to-end tests
 - Test observable behavior through public APIs, not implementation details
 - Use stubs/fakes for external services; avoid mocks unless necessary
 
 **Coverage targets:**
+
 - Maintain high coverage (90%+)
 - Trivial code (getters/setters) should be exercised by other tests, not explicitly tested
 - If trivial code isn't covered, question whether it's needed (libraries may be an exception)
@@ -85,12 +90,14 @@ Before considering any task complete, run the relevant tests. See the `testing` 
 Prefer immutable objects and data structures where immutability doesn't reduce comprehension.
 
 **Benefits:**
+
 - Thread safety without synchronization
 - Predictable behavior - no surprise state changes
 - Easier to reason about code
 - Fewer defensive copies needed
 
 **Examples:**
+
 ```java
 // GOOD - immutable record
 public record Person(String name, int age) {}
@@ -106,6 +113,7 @@ var config = Config.builder()
 ```
 
 **Avoid setters** - Instead of anemic data objects with getters/setters, prefer domain-driven design with rich behavior:
+
 ```java
 // BAD - anemic object with setter
 person.setStatus("APPROVED");
@@ -115,6 +123,7 @@ person.approve();
 ```
 
 **When mutability is acceptable:**
+
 - Performance-critical code where immutability causes measurable overhead
 - Accumulators/builders during object construction
 - Cases where it significantly reduces comprehension
@@ -124,23 +133,28 @@ person.approve();
 Design code that follows SOLID principles with a focus on polymorphic behavior:
 
 ### Single Responsibility
+
 - Each unit (class, function, module) has one reason to change
 - Let your domain language define responsibilities
 - Build units around single responsibilities derived from the domain
 
 ### Open/Closed Principle
+
 - Open for extension, closed for modification
 - Use polymorphism to add behavior without changing existing code
 
 ### Liskov Substitution
+
 - Subtypes must be substitutable for their base types
 - Polymorphic behavior should be predictable
 
 ### Interface Segregation
+
 - Prefer small, focused interfaces over large, general ones
 - Clients shouldn't depend on methods they don't use
 
 ### Dependency Inversion
+
 - Depend on abstractions, not concrete implementations
 - This enables the polymorphic behavior that makes systems flexible
 
@@ -149,6 +163,7 @@ Design code that follows SOLID principles with a focus on polymorphic behavior:
 **Encapsulate behavior so it's polymorphic** - let the unit decide how to act rather than orchestrating externally.
 
 **Polymorphism takes many forms:**
+
 - Traditional inheritance and interfaces
 - Lambdas and functional programming (passing behavior as data)
 - Strategy patterns and dependency injection
@@ -194,6 +209,7 @@ If you follow these principles, your code will naturally be composable, clear, a
 ### Git/Repository Assumptions (Dangerous)
 
 **Do not assume:**
+
 - Your local `develop` (or default branch) is current with `origin`
 - Files haven't changed since you last read them
 - Branches you created are still valid (PRs may have been merged/closed)
@@ -202,6 +218,7 @@ If you follow these principles, your code will naturally be composable, clear, a
 ### Workspace Assumptions (Dangerous)
 
 **Do not assume exclusive access to:**
+
 - The filesystem (other processes/agents may modify files)
 - Environment variables (may change between invocations)
 - Network ports (may be in use by other services)
@@ -210,6 +227,7 @@ If you follow these principles, your code will naturally be composable, clear, a
 ### Correct Approaches
 
 **Verify git state at session start:**
+
 ```bash
 # Always check if local HEAD is behind origin
 git fetch origin
@@ -220,6 +238,7 @@ git pull origin develop
 ```
 
 **Don't assume file state persists:**
+
 ```java
 // BAD - assumes file hasn't changed since last read
 private Config cachedConfig;  // May be stale
@@ -231,6 +250,7 @@ public Config getConfig() {
 ```
 
 **Explicitly verify external state:**
+
 ```bash
 # Check if port is available before using
 if ! lsof -i :8080 > /dev/null 2>&1; then
@@ -241,6 +261,10 @@ fi
 ```
 
 **When uncertain, verify** rather than assuming state is as you left it.
+
+## Rule 6: Use Libraries When Available
+
+Before implementing new functionality, check if it's already provided by standard libraries or existing dependencies. **Prefer existing code over writing your own**, even for seemingly "trivial" functions.
 
 ---
 

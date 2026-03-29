@@ -139,12 +139,13 @@ Kalix detects syntax style and normalizes internally:
 | ---------- | --------------- | ---------------- |
 | `[8.0.0,)` | Maven range     | Internal range   |
 | `8.x`      | Semver wildcard | `>=8.0.0 <9.0.0` |
+| `8.+`      | Ivy wildcard    | `>=8.0.0 <9.0.0` |
 | `^8.0.0`   | Semver caret    | `>=8.0.0 <9.0.0` |
 | `~8.0.0`   | Semver tilde    | `>=8.0.0 <8.1.0` |
 | `8.0.0`    | Exact version   | Exact `8.0.0`    |
 | `8`        | Literal exact   | Exact string `8` |
 
-**Dropped:** Ivy-style `+` patterns (`8.+`). Use `8.x` for wildcard matching (e.g., `8.x` matches `8.0.0`, `8.5.2`, etc.).
+**Ivy Compatibility:** `8.+` is accepted as a synonym for `8.x`. `8+` (without dot) is **unsupported** (likely a typo).
 
 ## Resolution Strategies
 

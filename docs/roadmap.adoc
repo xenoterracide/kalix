@@ -117,6 +117,8 @@ kflix-demo/
 
 **Decision:** Gradle-style resolution (newest wins) over Maven (nearest definition). Better DWIM behavior, more predictable.
 
+*Note:* Gradle is Apache 2.0, compatible with Kalix's GPL-3.0. We could theoretically use their resolver directly, but it's tightly coupled to Gradle internals. Reimplementing the algorithm is cleaner.
+
 **Explicitly OUT of vertical slice:**
 - Multi-module projects
 - Annotation processors

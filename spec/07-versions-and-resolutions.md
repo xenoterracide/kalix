@@ -92,34 +92,14 @@ Maven semantics:
 - `,` separates lower and upper bounds
 - Empty = unbounded
 
-### 2. Gradle/Ivy Style (Regex-like)
+### 2. Semver/Node Style (Preferred Ergonomics)
 
 ```yaml
 dependencies:
-  # 8.0.0 or higher, same major
-  - org.example:lib:8.+
-
-  # 8.1.0 or higher, same major.minor
-  - org.example:lib:8.1.+
-
-  # Latest 8.x.x
-  - org.example:lib:8.+
-```
-
-Ivy `+` semantics:
-
-- `8.+` = `8.*` in regex terms
-- `8.1.+` = `8.1.*` in regex terms
-- **Warning**: `8.+` matches `8.99.99` which may include breaking changes
-
-### 3. Semver/Node Style (Preferred Ergonomics)
-
-```yaml
-dependencies:
-  # Any 8.x.x (compatible with 8.0.0)
+  # Any 8.x.x (matches 8.0.0 through 8.99.99)
   - org.example:lib:8.x
 
-  # Any 8.0.x (patch only)
+  # Any 8.0.x (patch only: 8.0.0 through 8.0.99)
   - org.example:lib:8.0.x
 
   # Any 8.x.x or 9.x.x (major version flexibility)
@@ -129,24 +109,42 @@ dependencies:
   - org.example:lib:"^8.0.0"
 ```
 
-Node/Semver semantics:
+**Important:** Bare numbers are **literal versions only**:
 
-- `x` = wildcard (any value)
-- `^8.0.0` = `>=8.0.0 <9.0.0` (compatible with)
-- `~8.0.0` = `>=8.0.0 <8.1.0` (approximately)
-- `||` = OR ranges
+```yaml
+# 8 = EXACTLY version "8" (the literal string)
+# Does NOT match 8.0.0, does NOT match 8.5.2
+# Only matches an artifact published with version = "8"
+- org.example:lib:8
+```
+
+This is intentionally strict:
+
+- `8` ≠ `8.0.0` (different strings)
+- `8` ≠ `8.0` (different strings)
+- Only `8` matches `8`
+
+Use wildcards for flexibility:
+
+- `8.x` matches `8.0.0`, `8.5.2`, `8.99.99`
+- `8.0.x` matches `8.0.0`, `8.0.5`, `8.0.99`
+
+This violates "Do What I Mean" but provides **absolute clarity**: you get exactly what you asked for, no surprises.
 
 ### Syntax Precedence
 
 Kalix detects syntax style and normalizes internally:
 
-| Pattern    | Detected As  | Normalized To    |
-| ---------- | ------------ | ---------------- |
-| `[8.0.0,)` | Maven range  | Internal range   |
-| `8.+`      | Ivy pattern  | Regex `8\\..*`   |
-| `8.x`      | Semver       | `>=8.0.0 <9.0.0` |
-| `^8.0.0`   | Semver caret | `>=8.0.0 <9.0.0` |
-| `8.0.0`    | Exact        | Exact `8.0.0`    |
+| Pattern    | Detected As     | Normalized To    |
+| ---------- | --------------- | ---------------- |
+| `[8.0.0,)` | Maven range     | Internal range   |
+| `8.x`      | Semver wildcard | `>=8.0.0 <9.0.0` |
+| `^8.0.0`   | Semver caret    | `>=8.0.0 <9.0.0` |
+| `~8.0.0`   | Semver tilde    | `>=8.0.0 <8.1.0` |
+| `8.0.0`    | Exact version   | Exact `8.0.0`    |
+| `8`        | Literal exact   | Exact string `8` |
+
+**Dropped:** Ivy-style `+` patterns (`8.+`). Use `8.x` for wildcard matching (e.g., `8.x` matches `8.0.0`, `8.5.2`, etc.).
 
 ## Resolution Strategies
 
@@ -155,7 +153,6 @@ Different version syntaxes need different resolution strategies:
 | Strategy   | Source     | Behavior                                |
 | ---------- | ---------- | --------------------------------------- |
 | **Maven**  | `[8.0.0,)` | Nearest definition, soft versions       |
-| **Ivy**    | `8.+`      | Dynamic revision, cache TTL             |
 | **Semver** | `8.x`      | Latest matching, reproducible with lock |
 
 Kalix uses **unified resolution**:
@@ -289,6 +286,70 @@ dependencies:
   - org.springframework.boot:spring-boot-starter:$spring-boot
   - org.springframework.boot:spring-boot-starter-web:$spring-boot
 ```
+
+## Publishing with Ranges (Resolving the "Gradle Latest" Problem)
+
+**The Problem:** Gradle's default resolution picks the newest version that satisfies constraints. This means if your library supports `[8.0.0,10.0.0)` but a new version 9.5.0 breaks things, consumers using Gradle automatically get the broken version.
+
+### Kalix Solution: Lock for Builds, Publish with Ranges
+
+```yaml
+# kalix.yaml - what you develop/test against
+# Locked to exact versions for reproducible builds
+dependencies:
+  compile:
+    - org.springframework:spring-core:8.5.2 # Exact, locked
+```
+
+```xml
+<!-- Published pom.xml - what you tell consumers you support -->
+<dependency>
+  <groupId>com.example</groupId>
+  <artifactId>my-lib</artifactId>
+  <version>1.0.0</version>
+  <!-- We tested against 8.x, publish that range -->
+</dependency>
+<dependency>
+  <groupId>org.springframework</groupId>
+  <artifactId>spring-core</artifactId>
+  <!-- Published as range so consumers know what we support -->
+  <version>[8.0.0,9.0.0)</version>
+</dependency>
+```
+
+This way:
+
+- **Your builds** are reproducible (locked to exact versions)
+- **Consumers know** what versions you actually tested against
+- **Version conflicts** are explicit (consumer sees `[8.0.0,9.0.0)` vs their constraints)
+
+### Handling Known Bad Versions
+
+Maven's range syntax doesn't support exclusions. Options:
+
+**Option 1: Narrow the range**
+
+```xml
+<!-- Skip 8.5.1 due to known bug -->
+<version>[8.0.0,8.5.0),[8.5.2,9.0.0)</version>
+```
+
+**Option 2: Dependency management override**
+
+```xml
+<!-- In consumer's pom.xml -->
+<dependencyManagement>
+  <dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-core</artifactId>
+    <version>8.5.2</version>
+    <!-- Override the problematic version -->
+  </dependency>
+</dependencyManagement>
+```
+
+**Option 3: Documentation**
+Release notes document: "Known incompatible with 8.5.1 due to CVE-2026-1234"
 
 ## Snapshots and Pre-releases
 

@@ -64,15 +64,23 @@ klx [global-options] <command> [command-options]
 
 ### Commands
 
-| Command   | Purpose                           |
-| --------- | --------------------------------- |
-| `build`   | Compile and package               |
-| `test`    | Run tests                         |
-| `run`     | Run the application               |
-| `clean`   | Delete build outputs              |
-| `publish` | Publish to repository             |
-| `update`  | Update dependencies and lock file |
-| `check`   | Run all verification              |
+| Command    | Purpose                            |
+| ---------- | ---------------------------------- |
+| `build`    | Full build: compile, test, package |
+| `assemble` | Package artifacts only (no tests)  |
+| `compile`  | Compile only, no tests or package  |
+| `test`     | Run tests                          |
+| `clean`    | Delete build outputs               |
+| `update`   | Update dependencies and lock file  |
+| `check`    | Run all verification (lint, etc.)  |
+| `run`      | **Execute a script or tool**       |
+| `tool`     | **Execute a tool or ad-hoc GAV**   |
+| `publish`  | Publish to repository              |
+
+**Note:** There is no `run-the-application` command. Running an application is:
+
+- A plugin concern (e.g., `io.kalix.spring-boot` plugin provides `klx spring-boot run`)
+- Or a script: `klx run start` where `scripts.start: java -jar build/libs/app.jar`
 
 ## Clean is for Debugging
 
@@ -196,105 +204,88 @@ klx --rerun build
 | Gradle    | Yes       | `gradle clean build`     |
 | **Kalix** | **No**    | `klx clean && klx build` |
 
-## Command Arguments
+## `klx run` - Execute Scripts and Tools
 
-Single command means everything after the command is an argument **to that command**:
+Unlike npm's `run` which is a meta-command, Kalix's `run` **executes scripts and tools directly**:
 
 ```bash
-# Pass arguments to your application
-klx run arg1 arg2 --flag value
+# Run a script
+klx run dev
+klx run test-integration
 
-# Pass arguments to tests
-klx test --tests "*IntegrationTest"
+# Run a tool
+klx run prettier --check 'src/**/*.java'
 
-# Pass JVM arguments
-klx run --jvm "-Xmx2g" -- arg1 arg2
+# Pass arguments naturally
+klx run server --port 8080 --debug
 ```
 
-### Comparison: Gradle Application Plugin
+### Why No `run-the-application` Command?
 
-Gradle's application plugin is notoriously painful:
+npm, yarn, and uv use `run` to execute things - not specifically "the application". This is because:
+
+- **Libraries** don't have applications to run
+- **Multiple apps** may exist in one project
+- **Application running** is a plugin concern
+
+```bash
+# Application via plugin (if spring-boot plugin installed)
+klx spring-boot run
+
+# Application via script
+klx run start  # Where scripts.start: java -jar build/libs/app.jar
+
+# Multiple applications
+klx run server  # Start server
+klx run cli --input data.csv  # Run CLI tool
+```
+
+### Command Arguments Flow Naturally
+
+Single command design means arguments flow naturally:
 
 ```bash
 # Gradle - horrible
 gradle run --args="arg1 arg2"
 
-# With clean (where does --args go??)
-gradle clean run --args="arg1 arg2"  # Sometimes works, sometimes doesn't
-
-# Multiple args with spaces
-gradle run --args="arg1 'arg with spaces' arg3"
-```
-
-Kalix:
-
-```bash
 # Kalix - simple
-klx run arg1 arg2
-
-# With clean
-klx clean && klx run arg1 arg2  # Explicit, clear
-
-# Args with spaces
-klx run arg1 "arg with spaces" arg3
+klx run my-script arg1 arg2
+klx run server --port 8080
 ```
 
-### Facilitates Aliases and Plugins
-
-Single command design enables:
+### Facilitates Aliases
 
 ```bash
-# Shell alias
-alias krun='klx run --jvm "-Xmx4g"'
-krun arg1 arg2  # Works perfectly
+# Shell alias for common script
+alias kdev='klx run dev'
+kdev --port 8080  # Runs: klx run dev --port 8080
 
 # Kalix alias (in kalix.yaml)
 aliases:
-  serve: run --server --port 8080
+  serve: run server --port 8080
 
 # Then
-klx serve  # Runs: klx run --server --port 8080
-
-# Custom plugin commands
-cargo add serde  # If we had a cargo-like plugin
-klx proto generate --lang kotlin
+klx serve  # Runs: klx run server --port 8080
 ```
 
-### Yarn/npm Style Scripts
+### Script Arguments
 
-Even better: Yarn-style scripts where args just flow through:
-
-```json
-// package.json
-{
-  "scripts": {
-    "dev": "node server.js --watch"
-  }
-}
-```
-
-```bash
-# Yarn - args just work
-yarn dev --port 8080
-# Runs: node server.js --watch --port 8080
-```
-
-Kalix equivalent:
+Scripts defined in `kalix.yaml` receive arguments directly:
 
 ```yaml
-# kalix.yaml
 scripts:
-  dev: run --continuous
+  lint: ktlint
   test-watch: test --watch
 ```
 
 ```bash
-# Kalix - args just work
-klx dev --port 8080
-# Runs: klx run --continuous --port 8080
+# Run lint with extra args
+klx run lint --format --color
+# Executes: ktlint --format --color
 
-klx test-watch --tests "*Integration"
-# Runs: klx test --watch --tests "*Integration"
+# Run test-watch with filter
+klx run test-watch --tests "*Integration"
+# Executes: klx test --watch --tests "*Integration"
 ```
 
 No `--args="..."` wrapper. No special parsing. Just append and execute.
@@ -611,15 +602,18 @@ Scripts provide custom commands. They **cannot** shadow built-in commands.
 
 ### Reserved Commands
 
-These command names are reserved by Kalix core and **cannot** be used as script names:
+These command names are reserved by Kalix core and **cannot** be used as script or tool names:
 
-| Category              | Commands                                          |
-| --------------------- | ------------------------------------------------- |
-| Build lifecycle       | `build`, `compile`, `test`, `jar`, `run`, `clean` |
-| Dependency management | `update`, `fetch`, `add`                          |
-| Publishing            | `publish`                                         |
-| Verification          | `check`                                           |
-| Utility               | `version`, `help`                                 |
+| Category              | Commands                                        |
+| --------------------- | ----------------------------------------------- |
+| Build lifecycle       | `build`, `assemble`, `compile`, `test`, `clean` |
+| Dependency management | `update`, `fetch`, `add`                        |
+| Publishing            | `publish`                                       |
+| Verification          | `check`                                         |
+| Execution             | `run`, `tool`                                   |
+| Utility               | `version`, `help`                               |
+
+**Note:** `run` and `tool` are reserved as **verbs** that execute things, not as targets. Application running is a plugin concern.
 
 ### Error on Conflict
 
@@ -661,7 +655,7 @@ scripts:
 
 ### Why Prevent Shadowing?
 
-Unlike Yarn/npm where `yarn run` is a meta-command that executes scripts, Kalix's `klx run` is a core command that runs the compiled application. Allowing shadowing would:
+Scripts and tools use the `run` and `tool` commands to execute. These names are reserved because:
 
 1. Break core functionality unpredictably
 2. Confuse team members ("why does `klx build` do something weird?")

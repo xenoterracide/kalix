@@ -146,7 +146,7 @@
 * `klx compile` - compile only, no tests
 * `klx test` - compile and test
 * `klx jar` - compile and package, no tests
-* `klx run` - build and run application
+* `klx run <script>` - execute a defined script
 
 === Source Layouts Supported
 * Maven standard (`src/main/java`, `src/test/java`)

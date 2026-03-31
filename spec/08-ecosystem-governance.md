@@ -261,25 +261,35 @@ Flow:
 2. Developer A approves → "partially approved"
 3. Developer B approves → **published**
 
-### Alternative: Pre-Authorized CI
+### Break-Glass Emergency Publishing
 
-For high-velocity projects, allow pre-authorized CI to publish directly (skips manual step):
+In exceptional circumstances (security patch, outage), emergency publish without normal approval:
+
+```bash
+# Requires pre-registered emergency approvers
+klx publish --emergency \
+  --artifact com.example:security-fix:1.0.1 \
+  --justification "CVE-2026-1234 - zero-day in production"
+```
+
+**Emergency publishes:**
+
+- Skip normal 2-step approval
+- Require 2 pre-registered emergency approvers
+- Generate immediate security audit alert
+- Auto-notify security team
+- Marked with `emergency: true` in metadata
+- Cannot be deleted but can be superseded quickly
+
+**Registration required:**
 
 ```yaml
 # kalix.yaml
 publishing:
-  ciAutoApprove: true
-  # Only if CI signature matches known-good key
-  trustedCi:
-    - github.com/myorg/myrepo
-    - gitlab.com/myorg/myrepo
+  emergencyApprovers:
+    - alice@company.com
+    - bob@company.com
 ```
-
-**Still secure:**
-
-- Requires SLSA attestation from trusted CI
-- Audit trail maintained
-- Can revoke trust if CI compromised
 
 ### Rationale
 

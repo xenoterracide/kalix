@@ -190,6 +190,108 @@ governance:
 
 This does not affect publishing to Kalix repositories—only local builds.
 
+## Multi-Step Publishing Workflow
+
+Kalix repository publishing requires **two-step approval** for security:
+
+### Step 1: CI/CD Upload (Automated)
+
+Uses client credentials flow with **single-use bearer token**:
+
+```bash
+# CI/CD environment
+export KALIX_CLIENT_ID=ci-publisher
+export KALIX_CLIENT_SECRET=$CI_SECRET
+
+# Request single-use bearer token
+klx auth get-token --scope publish:staging
+# Returns: token valid for 5 minutes, single use
+
+# Upload artifact to staging area
+klx publish --staging --token $ONE_TIME_TOKEN
+# Artifact uploaded but NOT visible to users
+```
+
+**Security properties:**
+
+- Token is single-use (revoked after first use)
+- Short expiry (5 minutes max)
+- Bound to specific artifact hash
+- CI/CD can do this unattended
+
+### Step 2: Manual Approval (Human Required)
+
+User logs in to approve publication:
+
+```bash
+# Developer logs in (interactive)
+klx auth login --scope publish:approve
+
+# Review staged artifacts
+klx publish --list-staging
+# Shows: com.example:my-lib:1.0.0 (uploaded 2026-03-28 14:30 UTC)
+
+# Approve for public release
+klx publish --approve com.example:my-lib:1.0.0
+# Now visible to users
+```
+
+**Without approval:**
+
+- Artifact sits in staging for 7 days (configurable)
+- Auto-deleted if not approved
+- Can be rejected/deleted by approver
+
+### Enterprise: Multi-Person Approval
+
+Enterprise Kalix servers can require **2-person sign-off**:
+
+```yaml
+# kalix-server.yaml (enterprise config)
+publishing:
+  approval:
+    requiredApprovers: 2
+    approverRoles: [release-manager, security-officer]
+    autoExpiry: 168h # 7 days
+```
+
+Flow:
+
+1. CI uploads artifact
+2. Developer A approves → "partially approved"
+3. Developer B approves → **published**
+
+### Alternative: Pre-Authorized CI
+
+For high-velocity projects, allow pre-authorized CI to publish directly (skips manual step):
+
+```yaml
+# kalix.yaml
+publishing:
+  ciAutoApprove: true
+  # Only if CI signature matches known-good key
+  trustedCi:
+    - github.com/myorg/myrepo
+    - gitlab.com/myorg/myrepo
+```
+
+**Still secure:**
+
+- Requires SLSA attestation from trusted CI
+- Audit trail maintained
+- Can revoke trust if CI compromised
+
+### Rationale
+
+| Attack Scenario            | 1-Step Publishing                      | 2-Step Publishing                          |
+| -------------------------- | -------------------------------------- | ------------------------------------------ |
+| CI secret leaked           | Attacker publishes malware immediately | Attacker uploads, but needs human approval |
+| Compromised CI pipeline    | Auto-publishes bad artifacts           | Staged only, human catches it              |
+| Insider threat (rogue dev) | Can publish anything                   | Needs second approver (enterprise)         |
+| Supply chain attack        | Direct injection                       | Blocked at approval stage                  |
+
+**The principle:** CI/CD can propose, but humans must approve. Prevents "oops the CI published my debug build to production."
+
 ## Future Supply Chain Hardening (Backlog)
 
 ### GitHub Actions & Build Environment Attestation

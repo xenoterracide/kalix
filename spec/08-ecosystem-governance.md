@@ -261,34 +261,17 @@ Flow:
 2. Developer A approves → "partially approved"
 3. Developer B approves → **published**
 
-### Break-Glass Emergency Publishing
+### Repository Configuration
 
-In exceptional circumstances (security patch, outage), emergency publish without normal approval:
-
-```bash
-# Requires pre-registered emergency approvers
-klx publish --emergency \
-  --artifact com.example:security-fix:1.0.1 \
-  --justification "CVE-2026-1234 - zero-day in production"
-```
-
-**Emergency publishes:**
-
-- Skip normal 2-step approval
-- Require 2 pre-registered emergency approvers
-- Generate immediate security audit alert
-- Auto-notify security team
-- Marked with `emergency: true` in metadata
-- Cannot be deleted but can be superseded quickly
-
-**Registration required:**
+Approval workflows are configured at the repository/server level (not in project `kalix.yaml`):
 
 ```yaml
-# kalix.yaml
+# kalix-server.yaml (repository configuration)
 publishing:
-  emergencyApprovers:
-    - alice@company.com
-    - bob@company.com
+  approval:
+    requiredApprovers: 1 # 1 for standard, 2 for enterprise
+    approverRoles: [developer] # Or [release-manager, security-officer]
+    stagingExpiry: 168h # 7 days before auto-delete
 ```
 
 ### Rationale

@@ -375,83 +375,128 @@ Problems:
 - **No simple "optional"** - Everything must be a "feature variant"
 - **Complex debugging** - Which feature variant created which configuration?
 
-### Kalix Approach: Dependency Roles + Maven 4 Shorthand
+### Kalix Approach: Maven Compatibility + Gradle Thoroughness
 
-Kalix supports both **map-based** (explicit) and **string-based** (shorthand) dependency declarations:
+Kalix bridges Maven's **copy-paste simplicity** with Gradle's **correct classpath modeling**.
 
-#### Map-Based (Explicit)
+#### Standard Maven Scopes (Copy-Paste Compatible)
 
 ```yaml
-# kalix.yaml
+# Direct mapping from pom.xml <scope> to @role
 dependencies:
-  # Regular compile dependency
+  - org.slf4j:slf4j-api:2.0.0@compile
+  - javax.servlet:servlet-api:2.5@provided
+  - org.postgresql:postgresql:42.7.0@runtime
+  - org.junit:junit:5.11.0@test
+  - org.springframework.boot:spring-boot-dependencies:3.2.0@import
+```
+
+**How Maven scopes map to Kalix:**
+
+| Maven Scope         | Kalix Role | Available At           | Transitive |
+| ------------------- | ---------- | ---------------------- | ---------- |
+| `compile` (default) | `compile`  | compile + runtime      | Yes        |
+| `provided`          | `provided` | compile only           | No         |
+| `runtime`           | `runtime`  | runtime only           | Yes        |
+| `test`              | `test`     | test compile + runtime | No         |
+| `import`            | `import`   | BOM management         | N/A        |
+
+**Gradle-style configurations** (derived from role):
+
+- `compileClasspath` = `compile` + `provided`
+- `runtimeClasspath` = `compile` + `runtime`
+- `testCompileClasspath` = `compile` + `provided` + `test`
+- `testRuntimeClasspath` = `compile` + `runtime` + `test`
+
+#### Extended Roles for Modern Workflows
+
+Beyond Maven's basic scopes, Kalix adds:
+
+```yaml
+dependencies:
+  # Development-only (not in production)
+  # Similar to Gradle's developmentOnly
+  - org.springframework.boot:spring-boot-devtools:3.2.0@development
+
+  # Optional dependency
+  # Consumers don't get this unless they explicitly depend on it
+  - com.example:optional-feature:1.0.0@compileOptional
+
+  # Annotation processors
+  - org.immutables:value:2.10.0@annotationProcessor
+```
+
+| Extended Role         | Available At      | Transitive | Use Case                   |
+| --------------------- | ----------------- | ---------- | -------------------------- |
+| `development`         | local run + test  | No         | DevTools, debugging agents |
+| `compileOptional`     | compile + runtime | Optional   | Optional features          |
+| `annotationProcessor` | compile only (AP) | No         | Code generation            |
+
+#### Composite Role Syntax
+
+Combine role + optional flag:
+
+```yaml
+# compile + optional = compileOptional
+dependencies:
+  - com.example:lib:1.0.0@compile+optional
+  # Same as:
+  - com.example:lib:1.0.0@compileOptional
+```
+
+#### Map-Based (Verbose) Alternative
+
+For complex exclusions or when readability matters:
+
+```yaml
+dependencies:
   compile:
-    - org.springframework.boot:spring-boot-starter-web:3.2.0
+    - org.springframework.boot:spring-boot-starter-web:3.2.0:
+        exclude:
+          - org.springframework.boot:spring-boot-starter-logging
 
-  # Development-only (like devtools)
-  development:
-    - org.springframework.boot:spring-boot-devtools:3.2.0
+  provided:
+    - javax.servlet:javax.servlet-api:4.0.1
 
-  # Optional (consumers don't get this transitively)
-  compileOptional:
-    - com.example:optional-lib:1.0.0
-
-  # Test-only
   test:
     - org.junit.jupiter:junit-jupiter:5.11.0
 ```
 
-#### String-Based Shorthand (Maven 4 Style)
+#### The Design Tension
+
+**Maven's model** is simple (5 scopes) but misses important distinctions:
+
+- Can't express "test-only runtime dependency"
+- No first-class annotation processor scope
+- No development-only concept
+
+**Gradle's model** is thorough (compileClasspath, runtimeClasspath, testCompileClasspath, etc.) but complex:
+
+- Configurations are implementation details leaking out
+- Feature variants create implicit configurations
+- Hard to know which configuration to use
+
+**Kalix approach:**
+
+- **Simple case:** Maven scopes (`@compile`, `@test`, etc.) - copy from any pom.xml
+- **Complex case:** Explicit classpath configuration when needed
+- **Role expansion:** Roles expand to correct Gradle-style configurations internally
+
+**Example expansion:**
 
 ```yaml
-# Maven 4 shorthand: group:artifact:version@role
-# Role is roughly equivalent to scope/sourceSet
-
+# User writes (simple):
 dependencies:
-  # Flat list with @role suffix
-  - org.springframework.boot:spring-boot-starter-web:3.2.0@compile
-  - org.springframework.boot:spring-boot-devtools:3.2.0@development
-  - com.example:optional-lib:1.0.0@compileOptional
-  - org.junit.jupiter:junit-jupiter:5.11.0@test
-  - org.springframework.boot:spring-boot-dependencies:3.2.0@import
+  - org.postgresql:postgresql:42.7.0@runtime
+
+# Kalix expands to (thorough):
+# - NOT available at compile time
+# - Available at runtime
+# - Transitive to consumers
+# - Part of runtimeClasspath, testRuntimeClasspath
 ```
 
-**Design principle:** Role determines both the **dependency category** (transitivity, resolution) and the **source sets** that include it.
-
-| Role              | Included In   | Transitive |
-| ----------------- | ------------- | ---------- |
-| `compile`         | main, test    | Yes        |
-| `test`            | test only     | No         |
-| `development`     | runtime, test | No         |
-| `compileOptional` | main          | Optional   |
-| `import`          | N/A (BOM)     | N/A        |
-
-#### Scope vs SourceSet
-
-Scopes and source sets are **separate concerns** but **conveniently overlap**:
-
-```yaml
-# Scope determines resolution behavior
-dependencies:
-  compile:
-    - org.slf4j:slf4j-api:2.0.0 # Goes to main classpath
-
-test:
-  sourceSets:
-    test:
-      # Source set determines which compilation unit gets it
-      # But scope already told us this is test-only
-```
-
-**Special case:** `import` scope is **purely for BOMs** - no source set, just version management.
-
-Does this actually work better? We'll see. The design goals are:
-
-- Roles are just dependency categories, not magically coupled to source sets
-- Source sets are explicit when you need them
-- No implicit creation of 5 things like Gradle's feature variants
-
-But the proof is in the implementation. This is marked as experimental.
+Does this actually work better? We'll see. This is marked as experimental.
 
 ### Capability Declarations
 

@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
-# Kalix Configuration for spring-app-commons
+# Kalyx Configuration for spring-app-commons
 # Compare to: build.gradle.kts, settings.gradle.kts, buildSrc/, gradle/libs.versions.toml
 
 #
@@ -19,32 +19,32 @@ toolchain:
 
 # PLUGINS - published separately in gradle-convention project
 plugins:
-  # io.kalix.compile provides:
+  # io.kalyx.compile provides:
   # - Error Prone with 200+ checks
   # - NullAway configuration
   # - Different behavior for prod vs test
   # - Compiler args (-parameters, -Xlint:all, etc.)
-  - io.kalix.compile:2.0.0
+  - io.kalyx.compile:2.0.0
 
-  # io.kalix.checkstyle provides:
+  # io.kalyx.checkstyle provides:
   # - Checkstyle per source set
   # - Config from .config/checkstyle/<sourceSet>.xml
   # - Falls back to root project config
-  - io.kalix.checkstyle:2.0.0
+  - io.kalyx.checkstyle:2.0.0
 
-  # io.kalix.coverage provides:
+  # io.kalyx.coverage provides:
   # - Unified coverage for multiple test suites
   # - Coverage minimum enforcement
-  - io.kalix.coverage:2.0.0
+  - io.kalyx.coverage:2.0.0
 
-  # io.kalix.spotbugs provides:
+  # io.kalyx.spotbugs provides:
   # - SpotBugs static analysis
-  - io.kalix.spotbugs:2.0.0
+  - io.kalyx.spotbugs:2.0.0
 
-  # io.kalix.publish provides:
+  # io.kalyx.publish provides:
   # - GitHub publishing
   # - License metadata
-  - io.kalix.publish:2.0.0
+  - io.kalyx.publish:2.0.0
 
 # Repositories
 repositories:
@@ -203,7 +203,7 @@ subprojects:
   autoDiscover: module
   defaults:
     plugins:
-      - io.kalix.javalibrary:2.0.0
+      - io.kalyx.javalibrary:2.0.0
 
 # Publishing
 publishing:

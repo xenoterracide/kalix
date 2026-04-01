@@ -10,7 +10,7 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 ## Core Principle
 
-Kalix builds are **reproducible by default**. Running `klx build` 482 times with the same inputs produces bit-for-bit identical output.
+Kalyx builds are **reproducible by default**. Running `klx build` 482 times with the same inputs produces bit-for-bit identical output.
 
 ```bash
 $ klx build
@@ -26,7 +26,7 @@ e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  build/libs/my-
 
 ## Inputs That Must Be Identical
 
-| Input              | Source of Variability          | Kalix Solution       |
+| Input              | Source of Variability          | Kalyx Solution       |
 | ------------------ | ------------------------------ | -------------------- |
 | Source code        | Timestamps, line endings       | Normalized input     |
 | Dependencies       | SNAPSHOT versions              | Banned by default    |
@@ -40,12 +40,12 @@ e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  build/libs/my-
 
 ZIP/JAR format unfortunately has timestamp fields baked into the spec. They are **not required to be accurate** - we just need them to be **reproducible**.
 
-**Kalix solution:** Plugin-based timestamp resolution.
+**Kalyx solution:** Plugin-based timestamp resolution.
 
 The core asks plugins: "What's the reproducible timestamp for this build?"
 
 ```
-# Kalix JAR entry (via git plugin)
+# Kalyx JAR entry (via git plugin)
 Local file header:
   last mod file time: 10:30:00   # From git commit: 2026-03-28 10:30:00 UTC
   last mod file date: 2026-03-28 # From git commit
@@ -66,13 +66,13 @@ ZIP entry timestamps come from the active VCS plugin. No git in the core - the g
 
 ZIP/JAR entry order depends on filesystem iteration order.
 
-**Kalix solution:** All archive entries sorted alphabetically.
+**Kalyx solution:** All archive entries sorted alphabetically.
 
 ### Build Path
 
 Absolute paths in debug info, source maps, etc.
 
-**Kalix solution:** All paths relative to project root in output.
+**Kalyx solution:** All paths relative to project root in output.
 
 ### Non-Deterministic Operations
 
@@ -80,7 +80,7 @@ Absolute paths in debug info, source maps, etc.
 - Random UUIDs (unless seeded)
 - Parallel stream non-determinism
 
-**Kalix solution:**
+**Kalyx solution:**
 
 - Ordered data structures by default
 - Deterministic UUID generation when needed
@@ -120,7 +120,7 @@ Reproducible builds enable:
 ## Configuration
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 reproducible:
   enabled: true # Default
   buildInfo: false # Exclude volatile build metadata
@@ -143,7 +143,7 @@ Note: There is no option to "record timestamps" - timestamps in JARs are set to 
 | Gradle    | ❌ No                   | Requires configuration, often breaks |
 | Bazel     | ✅ Yes                  | Sandboxed, deterministic             |
 | Nix       | ✅ Yes                  | Content-addressed                    |
-| **Kalix** | **✅ Yes**              | **Zero config, guaranteed**          |
+| **Kalyx** | **✅ Yes**              | **Zero config, guaranteed**          |
 
 ## Debugging Non-Reproducibility
 
@@ -156,14 +156,14 @@ Diff:
     - Build-Time: 2026-03-28T14:30:00Z
     + Build-Time: 2026-03-28T14:30:01Z
 
-Suggestion: Disable build timestamps in kalix.yaml
+Suggestion: Disable build timestamps in kalyx.yaml
   reproducible:
     buildInfo: false
 ```
 
 ## Future: Independent Verification
 
-Third parties can verify Kalix artifacts:
+Third parties can verify Kalyx artifacts:
 
 ```bash
 # Anyone can run this
@@ -177,4 +177,4 @@ Comparing against published artifact...
   Built:     e3b0c44298...
 ```
 
-This enables decentralized trust - don't trust Kalix hosting, verify yourself.
+This enables decentralized trust - don't trust Kalyx hosting, verify yourself.

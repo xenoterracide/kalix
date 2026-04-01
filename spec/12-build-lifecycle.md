@@ -10,7 +10,7 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 ## Scripts vs Build Lifecycle
 
-Kalix distinguishes between **scripts** (ad-hoc commands) and the **build lifecycle** (structured build process):
+Kalyx distinguishes between **scripts** (ad-hoc commands) and the **build lifecycle** (structured build process):
 
 | Aspect           | Scripts                     | Build Lifecycle              |
 | ---------------- | --------------------------- | ---------------------------- |
@@ -41,14 +41,14 @@ Problems:
 - No caching - can't skip unchanged work
 - No parallelization - sequential by default
 
-Kalix separates concerns:
+Kalyx separates concerns:
 
 - **Scripts** for ad-hoc commands (format, lint)
 - **Build lifecycle** for real builds with incremental execution
 
 ## Core Build Tasks
 
-Kalix defines a minimal set of core tasks. Everything else is plugins.
+Kalyx defines a minimal set of core tasks. Everything else is plugins.
 
 ### Task Graph
 
@@ -127,7 +127,7 @@ $ klx build
 
 ### Input/Output Tracking
 
-Kalix tracks inputs at the content level (SHA-256):
+Kalyx tracks inputs at the content level (SHA-256):
 
 | Task          | Inputs                                                            | Outputs      |
 | ------------- | ----------------------------------------------------------------- | ------------ |
@@ -139,7 +139,7 @@ If any input SHA changes, the task re-executes. Otherwise, it's UP-TO-DATE.
 
 ### Early Dependency Resolution
 
-Kalix resolves and downloads dependencies **before** starting expensive work:
+Kalyx resolves and downloads dependencies **before** starting expensive work:
 
 ```
 klx build
@@ -168,16 +168,16 @@ klx build
 | --------- | ----------------------------------------------- |
 | Maven     | At phase execution (can fail mid-build)         |
 | Gradle    | Configuration phase (before task execution)     |
-| **Kalix** | Before task graph execution (earliest possible) |
+| **Kalyx** | Before task graph execution (earliest possible) |
 
 ## Configuration
 
 Users don't define the task graph directly. They configure plugins that provide tasks:
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 plugins:
-  - io.kalix.java:2.0.0
+  - io.kalyx.java:2.0.0
 
 tasks:
   compileJava:
@@ -195,10 +195,10 @@ tasks:
 Projects can add custom tasks via plugins or inline:
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 plugins:
-  - io.kalix.java:2.0.0
-  - io.kalix.protobuf:2.0.0 # Adds generateProto task
+  - io.kalyx.java:2.0.0
+  - io.kalyx.protobuf:2.0.0 # Adds generateProto task
 
 tasks:
   # Custom task inline
@@ -212,7 +212,7 @@ tasks:
 
 ## Comparison
 
-| Feature     | Maven            | Gradle      | Node/npm     | Kalix             |
+| Feature     | Maven            | Gradle      | Node/npm     | Kalyx             |
 | ----------- | ---------------- | ----------- | ------------ | ----------------- |
 | Task graph  | Phases/goals     | Yes         | No (scripts) | Yes               |
 | Incremental | Limited          | Yes         | No           | Yes               |

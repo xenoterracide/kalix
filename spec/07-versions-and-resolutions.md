@@ -30,7 +30,7 @@ module com.example.app {
 }
 ```
 
-Kalix maps module names to Maven coordinates, resolving versions via lock file.
+Kalyx maps module names to Maven coordinates, resolving versions via lock file.
 
 ### The Reality
 
@@ -48,10 +48,10 @@ Even if a module declares a version via `ModuleDescriptor.Version`, it's rarely 
 
 ### The Compromise
 
-Kalix uses **hybrid declaration**:
+Kalyx uses **hybrid declaration**:
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 dependencies:
   # Maven coordinates with JPMS module name (optional)
   - org.springframework:spring-core:6.1.0:
@@ -69,7 +69,7 @@ Benefits:
 
 ## Version Syntax Support
 
-Kalix supports three syntax styles for compatibility and ergonomics:
+Kalyx supports three syntax styles for compatibility and ergonomics:
 
 ### 1. Maven Style (Archaic but Required)
 
@@ -133,7 +133,7 @@ This violates "Do What I Mean" but provides **absolute clarity**: you get exactl
 
 ### Syntax Precedence
 
-Kalix detects syntax style and normalizes internally:
+Kalyx detects syntax style and normalizes internally:
 
 | Pattern    | Detected As     | Normalized To    |
 | ---------- | --------------- | ---------------- |
@@ -156,26 +156,26 @@ Different version syntaxes need different resolution strategies:
 | **Maven**  | `[8.0.0,)` | Nearest definition, soft versions       |
 | **Semver** | `8.x`      | Latest matching, reproducible with lock |
 
-Kalix uses **unified resolution**:
+Kalyx uses **unified resolution**:
 
 1. Parse version constraint (any syntax)
 2. Normalize to internal range representation
 3. Query Maven repositories
 4. Apply conflict resolution (newest wins, unless forced)
-5. Lock exact versions in `kalix.lock`
+5. Lock exact versions in `kalyx.lock`
 
 ## Lock File Versions
 
 Regardless of declared syntax, lock file always contains exact versions:
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 dependencies:
   - org.example:lib:8.x # Semver style
 ```
 
 ```json
-// kalix.lock
+// kalyx.lock
 {
   "resolved": [
     {
@@ -193,7 +193,7 @@ dependencies:
 Toolchain support is designed in from the start, not bolted on later.
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 toolchain:
   languageVersion: 21
   vendor: temurin # or amazon, oracle, microsoft, etc.
@@ -223,7 +223,7 @@ $ klx build
 ### Download on Demand
 
 ```yaml
-# kalix.yaml - explicit version
+# kalyx.yaml - explicit version
 toolchain:
   languageVersion: 21
   download: true # Download if not present
@@ -233,20 +233,20 @@ toolchain:
 $ klx build
 Toolchain '21-temurin' not found locally.
 Downloading from https://api.adoptium.net/...
-Installed: ~/.kalix/toolchains/21-temurin/
+Installed: ~/.kalyx/toolchains/21-temurin/
 Building...
 ```
 
 ### Per-Subproject Toolchains
 
 ```yaml
-# legacy-subproject/kalix.yaml
+# legacy-subproject/kalyx.yaml
 toolchain:
   languageVersion: 17 # This subproject builds with Java 17
 ```
 
 ```yaml
-# root kalix.yaml
+# root kalyx.yaml
 toolchain:
   languageVersion: 21 # Default for other subprojects
 ```
@@ -292,10 +292,10 @@ dependencies:
 
 **The Problem:** Gradle's default resolution picks the newest version that satisfies constraints. This means if your library supports `[8.0.0,10.0.0)` but a new version 9.5.0 breaks things, consumers using Gradle automatically get the broken version.
 
-### Kalix Solution: Lock for Builds, Publish with Ranges
+### Kalyx Solution: Lock for Builds, Publish with Ranges
 
 ```yaml
-# kalix.yaml - what you develop/test against
+# kalyx.yaml - what you develop/test against
 # Locked to exact versions for reproducible builds
 dependencies:
   compile:
@@ -369,12 +369,12 @@ This causes:
 - Dependency confusion (is 1.0-rc1 before or after 1.0?)
 - Cache invalidation hell
 
-### Kalix: No Snapshots By Default
+### Kalyx: No Snapshots By Default
 
-Kalix **does not resolve snapshots or pre-releases** by default:
+Kalyx **does not resolve snapshots or pre-releases** by default:
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 dependencies:
   - com.example:lib:1.0-SNAPSHOT
 ```
@@ -385,7 +385,7 @@ Error: Snapshots are not supported in default resolution mode.
   com.example:lib:1.0-SNAPSHOT
 
 To use snapshots, enable explicitly:
-  kalix.yaml:
+  kalyx.yaml:
     resolution:
       allowSnapshots: true
       allowPrereleases: true
@@ -399,7 +399,7 @@ Maven snapshots are a failed experiment:
 - They bypass the lock file contract
 - They make bisecting bugs impossible (old SNAPSHOT is gone)
 
-**Potential decision:** Kalix may not support Maven `-SNAPSHOT` versions at all. Use:
+**Potential decision:** Kalyx may not support Maven `-SNAPSHOT` versions at all. Use:
 
 - **Versioned releases:** `1.0.0-alpha1`, `1.0.0-beta2`, `1.0.0-rc1`
 - **Local overrides:** `klx install` from source for development
@@ -420,13 +420,13 @@ Once published, a version **cannot be modified or deleted**:
 
 ## Version Testing Strategies (CPAN Testers Style)
 
-Library authors need to test against multiple dependency versions to ensure compatibility. Kalix provides **version testing strategies** for CI matrix builds.
+Library authors need to test against multiple dependency versions to ensure compatibility. Kalyx provides **version testing strategies** for CI matrix builds.
 
 ### Built-in Strategies
 
 | Strategy         | Behavior                               | Use Case                            |
 | ---------------- | -------------------------------------- | ----------------------------------- |
-| `lock` (default) | Use `kalix.lock` exactly               | Reproducible builds                 |
+| `lock` (default) | Use `kalyx.lock` exactly               | Reproducible builds                 |
 | `latest`         | Latest version matching declared range | Verify still works with newest deps |
 | `random`         | Random version from acceptable range   | Probabilistic coverage              |
 | `snapshot`       | Include SNAPSHOT versions              | Test against bleeding edge          |
@@ -488,20 +488,20 @@ steps:
 
 ### Reproducibility on Failure
 
-When a non-locked strategy fails, Kalix generates a **reproduction lock file**:
+When a non-locked strategy fails, Kalyx generates a **reproduction lock file**:
 
 ```bash
 $ klx test --version-strategy random
 FAILURE: Test failed with random version selection
 
 Generated reproduction lock file:
-  kalix-random-failure-20260328-153022.lock
+  kalyx-random-failure-20260328-153022.lock
 
 Reproduce this exact failure:
-  klx test --lock-file kalix-random-failure-20260328-153022.lock
+  klx test --lock-file kalyx-random-failure-20260328-153022.lock
 ```
 
-The main `kalix.lock` is **never modified** by version strategies.
+The main `kalyx.lock` is **never modified** by version strategies.
 
 ### Custom Lock Files
 
@@ -513,10 +513,10 @@ klx build --lock-file production.lock
 
 # CI saves failing states
 klx test --version-strategy random || \
-  mv kalix-random-failure-*.lock build-reports/
+  mv kalyx-random-failure-*.lock build-reports/
 
 # Reproduce a reported failure
-klx test --lock-file kalix-random-failure-20260328-153022.lock
+klx test --lock-file kalyx-random-failure-20260328-153022.lock
 ```
 
 This enables:
@@ -533,7 +533,7 @@ This enables:
 Picks a random version from the acceptable range:
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 dependencies:
   - org.example:lib:8.x # Could resolve to 8.0.0, 8.5.2, 8.99.99...
 ```
@@ -571,7 +571,7 @@ Downloaded: lib-1.0-20260328.143000-47.jar
 
 ### Comparison: CPAN Testers
 
-| Feature              | CPAN Testers     | Kalix                  |
+| Feature              | CPAN Testers     | Kalyx                  |
 | -------------------- | ---------------- | ---------------------- |
 | Matrix testing       | ✓ Yes            | ✓ `--version-strategy` |
 | Random versions      | ✓ Yes            | ✓ `random` strategy    |
@@ -602,7 +602,7 @@ Versions are immutable. Use a new version number.
 
 ### Security Response: Vulnerabilities vs Malware
 
-Kalix distinguishes between **vulnerabilities** (unintentional bugs) and **malware** (intentional backdoors):
+Kalyx distinguishes between **vulnerabilities** (unintentional bugs) and **malware** (intentional backdoors):
 
 | Type          | Severity                            | Download Behavior     |
 | ------------- | ----------------------------------- | --------------------- |
@@ -637,7 +637,7 @@ advisories:
   com.evil:backdoor:1.0.0:
     severity: malware
     reason: "Confirmed supply chain attack - backdoor payload"
-    reportedBy: security@kalix.dev
+    reportedBy: security@kalyx.dev
     reportedAt: 2026-03-28T14:30:00Z
 ```
 
@@ -646,7 +646,7 @@ $ klx build
 Error: Dependency com.evil:backdoor:1.0.0 is BLOCKED
   Severity: MALWARE
   Reason: Confirmed supply chain attack - backdoor payload
-  Reported: security@kalix.dev
+  Reported: security@kalyx.dev
 
 This artifact has been identified as malware.
 Remove it from your dependencies immediately.
@@ -669,11 +669,11 @@ Use --ignore-malware ONLY if you understand the risk.
 - B) Deleted entirely (removed from repository)
 - C) Both (moved to quarantine, removed from main)
 
-Kalix will **cowardly refuse** to download malware - the system defaults to protecting users over preserving immutability when the artifact is confirmed malicious.
+Kalyx will **cowardly refuse** to download malware - the system defaults to protecting users over preserving immutability when the artifact is confirmed malicious.
 
 ### Comparison
 
-| Feature            | Maven            | Gradle           | npm              | Kalix                   |
+| Feature            | Maven            | Gradle           | npm              | Kalyx                   |
 | ------------------ | ---------------- | ---------------- | ---------------- | ----------------------- |
 | Snapshots          | Native           | Supported        | (nightly)        | **Disabled by default** |
 | Prereleases        | Manual naming    | Supported        | Native           | **Disabled by default** |

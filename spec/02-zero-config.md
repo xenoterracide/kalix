@@ -52,13 +52,13 @@ $ klx container-build
 ## The Minimal Config
 
 ```yaml
-# kalix.yaml - only what's non-obvious
+# kalyx.yaml - only what's non-obvious
 dependencies:
   - org.slf4j:slf4j-api:2.0.9
   - ch.qos.logback:logback-classic:1.4.14
 ```
 
-Or even: dependencies declared via CLI only, stored in `kalix.lock`:
+Or even: dependencies declared via CLI only, stored in `kalyx.lock`:
 
 ```bash
 klx add org.slf4j:slf4j-api:2.0.9
@@ -70,7 +70,7 @@ klx add --test org.junit.jupiter:junit-jupiter:5.11.0
 ### Finding the Main Class
 
 1. Single class with `public static void main(String[])` → use it
-2. Multiple classes with `main` → error: "Multiple main classes found. Specify with: `kalix.main = com.example.App`"
+2. Multiple classes with `main` → error: "Multiple main classes found. Specify with: `kalyx.main = com.example.App`"
 3. No `main` found → assume library (no executable JAR)
 
 ### Source Layout Detection
@@ -100,7 +100,7 @@ Check in order:
 ## The "Enterprise Container" Sweet Spot
 
 ```yaml
-# kalix.yaml - enterprise microservice
+# kalyx.yaml - enterprise microservice
 # Everything else is convention or auto-detected
 
 dependencies:
@@ -119,6 +119,6 @@ $ klx deploy --dry-run   # show K8s manifest
 
 ## Questions
 
-1. Is `kalix.yaml` even needed if we can infer dependencies from imports? (Would require compiler integration)
-2. Should `klx add` modify `kalix.yaml` or a separate lockfile?
+1. Is `kalyx.yaml` even needed if we can infer dependencies from imports? (Would require compiler integration)
+2. Should `klx add` modify `kalyx.yaml` or a separate lockfile?
 3. How do we handle version conflicts without explicit resolution strategy?

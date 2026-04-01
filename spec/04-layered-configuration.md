@@ -10,14 +10,14 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 ## Philosophy
 
-Copy-paste configuration from other projects must be trivial. GAV (group/artifact/version) and project metadata should not live in the main build file. Instead, Kalix uses a layered configuration directory with merge/override semantics.
+Copy-paste configuration from other projects must be trivial. GAV (group/artifact/version) and project metadata should not live in the main build file. Instead, Kalyx uses a layered configuration directory with merge/override semantics.
 
 ## Configuration Directory Structure
 
 ```
 project-root/
 ├── .config/
-│   └── kalix/
+│   └── kalyx/
 │       ├── 00-defaults.yaml          # Distribution defaults
 │       ├── 01-company-defaults.yaml  # Company-wide standards
 │       ├── 02-myorg-defaults.yaml    # Org/team specific
@@ -92,14 +92,14 @@ dependencies:
 ```bash
 # New project setup
 cd my-new-service
-mkdir -p .config/kalix
+mkdir -p .config/kalyx
 
 # Copy from company template repo
-cp ~/templates/kalix/01-company-defaults.yaml .config/kalix/
-cp ~/templates/kalix/02-java-service.yaml .config/kalix/
+cp ~/templates/kalyx/01-company-defaults.yaml .config/kalyx/
+cp ~/templates/kalyx/02-java-service.yaml .config/kalyx/
 
 # Add project-specific stuff
-cat > .config/kalix/03-project.yaml << 'EOF'
+cat > .config/kalyx/03-project.yaml << 'EOF'
 project:
   name: my-new-service
 dependencies:
@@ -111,13 +111,13 @@ EOF
 ### Git Subtree/Submodule for Shared Config
 
 ```
-.config/kalix/
-├── 00-defaults.yaml           # From Kalix distribution
-├── 10-company/                # Git subtree from company/kalix-configs
+.config/kalyx/
+├── 00-defaults.yaml           # From Kalyx distribution
+├── 10-company/                # Git subtree from company/kalyx-configs
 │   ├── default-repos.yaml
 │   ├── security-scanning.yaml
 │   └── publishing.yaml
-├── 20-team/                   # Git subtree from team/kalix-configs
+├── 20-team/                   # Git subtree from team/kalyx-configs
 │   └── microservice-defaults.yaml
 └── 99-project.yaml            # Project specific
 ```
@@ -126,7 +126,7 @@ EOF
 
 | Layer | Typical Content                                             | Source                |
 | ----- | ----------------------------------------------------------- | --------------------- |
-| 00-09 | Kalix defaults, Java version defaults                       | Bundled with `klx`    |
+| 00-09 | Kalyx defaults, Java version defaults                       | Bundled with `klx`    |
 | 10-19 | Company-wide: repositories, group prefix, security policies | Company template repo |
 | 20-49 | Team/org specific: framework defaults, testing config       | Team template repo    |
 | 50-89 | Project specific: name, version, dependencies               | Project repo          |
@@ -145,13 +145,13 @@ EOF
 
 ## No Root Build File?
 
-With full layering, `kalix.yaml` at root is optional:
+With full layering, `kalyx.yaml` at root is optional:
 
 ```
 my-service/
-├── .config/kalix/
+├── .config/kalyx/
 │   ├── 01-company.yaml    # group: com.mycompany
-│   ├── 02-service.yaml    # plugin: io.kalix.spring-boot
+│   ├── 02-service.yaml    # plugin: io.kalyx.spring-boot
 │   └── 03-project.yaml    # name: my-service
 └── src/main/java/...
 ```
@@ -161,7 +161,7 @@ $ klx build
 # Works! Merges all configs, auto-detects main class, builds jar
 ```
 
-The root `kalix.yaml` can still exist for single-file convenience in simple projects.
+The root `kalyx.yaml` can still exist for single-file convenience in simple projects.
 
 ## Copy-Paste Ergonomics
 
@@ -173,7 +173,7 @@ cp -r templates/microservice/.config my-new-service/
 cd my-new-service
 
 # Edit one file
-echo 'project: { name: my-new-service }' > .config/kalix/99-project.yaml
+echo 'project: { name: my-new-service }' > .config/kalyx/99-project.yaml
 
 klx build
 ```
@@ -182,12 +182,12 @@ klx build
 
 ```bash
 # In each project
-git subtree pull --prefix=.config/kalix/10-company company-kalix-configs main
+git subtree pull --prefix=.config/kalyx/10-company company-kalyx-configs main
 ```
 
 ## Lock Files
 
-Lock files (`kalix.lock`) are always at project root and represent the resolved state. They are not layered - they capture the concrete result of the merge.
+Lock files (`kalyx.lock`) are always at project root and represent the resolved state. They are not layered - they capture the concrete result of the merge.
 
 ## Questions
 

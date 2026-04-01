@@ -9,7 +9,7 @@
 [cols="1,3"]
 |===
 | Primary Actor | <<Team Lead>> or <<Build Engineer>>
-| Scope | Kalix Build System - Configuration Management
+| Scope | Kalyx Build System - Configuration Management
 | Level | User Goal
 | Trigger | Need to share build standards across projects/team
 |===
@@ -35,7 +35,7 @@
 == Preconditions
 
 * Git repositories for shared configuration
-* Projects using Kalix build system
+* Projects using Kalyx build system
 * Access to git submodules, subtree, or copy mechanism
 
 == Postconditions
@@ -55,19 +55,19 @@
 == Main Success Scenario
 
 . [[step-create,Organization creates shared configuration]] *Organization creates shared configuration* +
-  _Create git repository `company/kalix-standards`,
-  Define company-wide defaults in `.config/kalix/01-company.yaml`_
+  _Create git repository `company/kalyx-standards`,
+  Define company-wide defaults in `.config/kalyx/01-company.yaml`_
 
 . [[step-distribute,Team distributes configuration to projects]] *Team distributes configuration to projects* +
   _Options:
-  Git submodule: `git submodule add company/kalix-standards .config/kalix/01-company`
-  Git subtree: `git subtree add --prefix=.config/kalix/01-company ...`
+  Git submodule: `git submodule add company/kalyx-standards .config/kalyx/01-company`
+  Git subtree: `git subtree add --prefix=.config/kalyx/01-company ...`
   Copy: Manual copy for simple cases_
 
 . [[step-apply,Project applies layered configuration]] *Project applies layered configuration* +
-  _Project has `.config/kalix/` directory:
+  _Project has `.config/kalyx/` directory:
 ```
-.config/kalix/
+.config/kalyx/
 ├── 01-company/           # From submodule (company standards)
 │   └── defaults.yaml
 ├── 10-security/          # Security team requirements
@@ -76,7 +76,7 @@
 ```_
 
 . [[step-merge,System merges configuration layers]] *System merges configuration layers* +
-  _Kalix loads files in sorted order,
+  _Kalyx loads files in sorted order,
   Deep merge for objects,
   Append for arrays,
   Later files override earlier ones_
@@ -93,7 +93,7 @@ repositories:
 ```_
 
 . [[step-update,Organization updates shared standards]] *Organization updates shared standards* +
-  _Update in `company/kalix-standards`,
+  _Update in `company/kalyx-standards`,
   Tag release,
   Projects pull update via `git submodule update` or `git subtree pull`_
 
@@ -160,7 +160,7 @@ exclusions:
 *Steps:*
 . Structure:
 ```
-.config/kalix/
+.config/kalyx/
 ├── 00-company/              # Everyone gets this
 ├── 10-backend-team/         # Only backend teams
 ├── 10-frontend-team/        # Only frontend teams
@@ -181,7 +181,7 @@ exclusions:
 === Layer Naming Conventions
 | Prefix | Purpose | Example |
 |--------|---------|---------|
-| 00-* | Distribution defaults | 00-kalix-defaults |
+| 00-* | Distribution defaults | 00-kalyx-defaults |
 | 01-09 | Organization standards | 01-company |
 | 10-49 | Team/division standards | 10-backend |
 | 50-89 | Project-specific | 50-project |
@@ -203,7 +203,7 @@ exclusions:
 
 == Comparison with Gradle
 
-| Aspect | Gradle | Kalix |
+| Aspect | Gradle | Kalyx |
 |--------|--------|-------|
 | Shared config | `buildSrc` or convention plugins | Layered YAML files |
 | Distribution | Maven publication + plugin application | Git submodule/subtree/copy |

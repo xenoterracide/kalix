@@ -10,7 +10,7 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 ## Philosophy: Minimal Core
 
-Kalix has a **minimal core**. Almost everything is a plugin, including first-party features.
+Kalyx has a **minimal core**. Almost everything is a plugin, including first-party features.
 
 This is the lesson from Gradle: when you bake features into the core, you create a monolith that is hard to evolve, hard to replace, and creates unintended coupling.
 
@@ -33,16 +33,16 @@ This is the lesson from Gradle: when you bake features into the core, you create
 
 ## First-Party Plugins
 
-"First-party" means maintained by the Kalix project, not that they're in the core.
+"First-party" means maintained by the Kalyx project, not that they're in the core.
 
 ```yaml
-# kalix.yaml - first-party plugins
+# kalyx.yaml - first-party plugins
 plugins:
-  - io.kalix.java:2.0.0 # Compilation
-  - io.kalix.junit:2.0.0 # Testing
-  - io.kalix.jar:2.0.0 # Packaging
-  - io.kalix.maven-publish:2.0.0 # Publishing to Maven Central
-  - io.kalix.git:2.0.0 # VCS integration
+  - io.kalyx.java:2.0.0 # Compilation
+  - io.kalyx.junit:2.0.0 # Testing
+  - io.kalyx.jar:2.0.0 # Packaging
+  - io.kalyx.maven-publish:2.0.0 # Publishing to Maven Central
+  - io.kalyx.git:2.0.0 # VCS integration
 ```
 
 These plugins live in separate repositories, have their own release cycles, and could theoretically be replaced by third-party alternatives.
@@ -62,7 +62,7 @@ So everyone uses third-party plugins like:
 
 This proves that **core bundling doesn't work**. Even with all of Gradle's bloat, they couldn't keep up with Maven Central's requirements.
 
-### Kalix Lesson
+### Kalyx Lesson
 
 Don't pretend we can anticipate every repository's requirements:
 
@@ -75,12 +75,12 @@ Don't pretend we can anticipate every repository's requirements:
 
 Each needs its own plugin. The core knows nothing about publishing protocols.
 
-Kalix approach:
+Kalyx approach:
 
 ```yaml
 # Publishing is just a plugin
 plugins:
-  - io.kalix.maven-publish:2.0.0
+  - io.kalyx.maven-publish:2.0.0
 
 publishing:
   repositories:
@@ -96,7 +96,7 @@ The core knows nothing about:
 - `maven-metadata.xml` generation
 - Repository authentication schemes
 
-The plugin handles all of it. If Maven Central changes their API, update the plugin - not Kalix core.
+The plugin handles all of it. If Maven Central changes their API, update the plugin - not Kalyx core.
 
 ## Plugin Interface
 
@@ -132,9 +132,9 @@ IntelliJ has no unified authentication system. Every plugin implements its own:
 
 **Result:** Users enter passwords 47 times, credentials scattered insecurely, no single sign-on.
 
-### Kalix: Centralized Credential SPI
+### Kalyx: Centralized Credential SPI
 
-Kalix provides a **credential supplier SPI** that plugins use, not implement:
+Kalyx provides a **credential supplier SPI** that plugins use, not implement:
 
 ```java
 // Core SPI - plugins call this, don't implement it
@@ -167,19 +167,19 @@ public class MavenPublisher implements PublisherPlugin {
 Configuration:
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 credentials:
   supplier: keychain # or vault, pass, etc.
 
   # Plugin-specific config
   vault:
     address: https://vault.company.com
-    path: secret/kalix
+    path: secret/kalyx
 ```
 
 ### Security Requirements
 
-Kalix supports multiple credential storage strategies, from simple to secure:
+Kalyx supports multiple credential storage strategies, from simple to secure:
 
 | Level  | Supplier    | Use Case                             |
 | ------ | ----------- | ------------------------------------ |
@@ -201,7 +201,7 @@ Kalix supports multiple credential storage strategies, from simple to secure:
 **Option 1: Plaintext (simplest, CI-friendly)**
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 credentials:
   supplier: plaintext
 
@@ -217,7 +217,7 @@ publishing:
 **Option 2: askpass (interactive, default for dev)**
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 credentials:
   supplier: askpass # Prompts interactively
 
@@ -230,7 +230,7 @@ publishing:
 **Option 3: Keychain (secure, default recommended)**
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 credentials:
   supplier: keychain
 
@@ -249,7 +249,7 @@ Password: ********
 
 ## 12-Factor Configuration
 
-Kalix follows 12-factor app principles for configuration:
+Kalyx follows 12-factor app principles for configuration:
 
 ### 1. Store Config in Environment
 
@@ -265,7 +265,7 @@ export KALIX_LOG_LEVEL=debug
 ### 2. Backing Services as Attached Resources
 
 ```yaml
-# kalix.yaml - service URLs only, no credentials
+# kalyx.yaml - service URLs only, no credentials
 repositories:
   - name: company-nexus
     url: ${NEXUS_URL} # 12-factor: URL from env, auth from keychain
@@ -293,9 +293,9 @@ Gradle and Maven made secure credential management **impossible by design**:
 
 **Result:** Enterprise secrets in plaintext files, committed to git, exposed in CI logs.
 
-### Kalix Approach: Pluggable, Progressive Security
+### Kalyx Approach: Pluggable, Progressive Security
 
-Kalix makes security **possible** and **optional but encouraged**:
+Kalyx makes security **possible** and **optional but encouraged**:
 
 ```yaml
 # Simple (CI, ephemeral)
@@ -311,7 +311,7 @@ credentials:
   supplier: vault
 ```
 
-**Key difference:** Gradle/Maven lock you into plaintext. Kalix gives you choices.
+**Key difference:** Gradle/Maven lock you into plaintext. Kalyx gives you choices.
 
 ````
 
@@ -322,10 +322,10 @@ Plugins resolved like dependencies:
 ```yaml
 plugins:
   # First-party
-  - io.kalix.java:2.0.0
+  - io.kalyx.java:2.0.0
 
   # Third-party
-  - com.example.kalix:protobuf-plugin:1.5.0
+  - com.example.kalyx:protobuf-plugin:1.5.0
 
   # Local (development)
   - file:../my-plugin/build/libs/my-plugin.jar
@@ -359,7 +359,7 @@ The only difference is maintenance ownership.
 
 ## Comparison
 
-| Aspect               | Maven                       | Gradle                     | Kalix                  |
+| Aspect               | Maven                       | Gradle                     | Kalyx                  |
 | -------------------- | --------------------------- | -------------------------- | ---------------------- |
 | Core size            | Large (everything built-in) | Large (publishing in core) | **Minimal**            |
 | Plugin API           | Limited (Mojos)             | Powerful but coupled       | **Clean interfaces**   |
@@ -370,22 +370,22 @@ The only difference is maintenance ownership.
 ## Configuration Example
 
 ```yaml
-# kalix.yaml - everything is plugins
+# kalyx.yaml - everything is plugins
 
 plugins:
   # Language
-  - io.kalix.java:2.0.0
+  - io.kalyx.java:2.0.0
 
   # Build lifecycle extensions
-  - io.kalix.git:2.0.0 # VCS info
-  - io.kalix.checkstyle:2.0.0 # Code quality
+  - io.kalyx.git:2.0.0 # VCS info
+  - io.kalyx.checkstyle:2.0.0 # Code quality
 
   # Packaging
-  - io.kalix.jar:2.0.0
-  - io.kalix.container:2.0.0 # Docker/OCI
+  - io.kalyx.jar:2.0.0
+  - io.kalyx.container:2.0.0 # Docker/OCI
 
   # Publishing
-  - io.kalix.maven-publish:2.0.0
+  - io.kalyx.maven-publish:2.0.0
 
 # Plugin-specific configuration
 java:

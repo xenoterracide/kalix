@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
-= Kalix Roadmap
+= Kalyx Roadmap
 
-This document defines the phases of Kalix development following RUP-inspired phases (per Craig Larman's *UML and Patterns*).
+This document defines the phases of Kalyx development following RUP-inspired phases (per Craig Larman's *UML and Patterns*).
 
 == Phase Overview
 
@@ -90,7 +90,7 @@ Prove the core loop works end-to-end with a **single Java file project**:
 
 ```
 kflix-demo/
-├── kalix.yaml          # One dependency: JUnit
+├── kalyx.yaml          # One dependency: JUnit
 └── src/
     ├── main/java/App.java      # Single class with main()
     └── test/java/AppTest.java  # Single JUnit test
@@ -117,7 +117,7 @@ kflix-demo/
 
 **Decision:** Gradle-style resolution (newest wins) over Maven (nearest definition). Better DWIM behavior, more predictable.
 
-*Note:* Gradle is Apache 2.0, compatible with Kalix's GPL-3.0. We could theoretically use their resolver directly, but it's tightly coupled to Gradle internals. Reimplementing the algorithm is cleaner.
+*Note:* Gradle is Apache 2.0, compatible with Kalyx's GPL-3.0. We could theoretically use their resolver directly, but it's tightly coupled to Gradle internals. Reimplementing the algorithm is cleaner.
 
 **Explicitly OUT of vertical slice:**
 - Multi-module projects
@@ -157,7 +157,7 @@ kflix-demo/
 **Vertical Slice (End-to-End):**
 
 Demonstrate:
-1. `kalix.yaml` with one dependency
+1. `kalyx.yaml` with one dependency
 2. `klx fetch` downloads it
 3. `klx build` compiles single Java file
 4. `klx test` runs single JUnit test
@@ -188,7 +188,7 @@ Just prove the core loop works.
 | C6 | Weeks 11-12 | MVP Polish - Error messages, documentation, CI/CD examples, performance |
 
 **Construction Exit Criteria:**
-- [ ] spring-app-commons builds with Kalix
+- [ ] spring-app-commons builds with Kalyx
 - [ ] Documentation complete
 - [ ] Migration path from Maven documented
 - [ ] No critical bugs
@@ -204,7 +204,7 @@ Just prove the core loop works.
 |----------|-------------|
 | Beta program | Early adopters try MVP |
 | Documentation review | Complete, accurate docs |
-| Migration guides | Maven → Kalix, Gradle → Kalix |
+| Migration guides | Maven → Kalyx, Gradle → Kalyx |
 | Release notes | What's new, breaking changes |
 | Marketing | Blog posts, presentations |
 | Community setup | Discord/forum, issue templates |
@@ -474,8 +474,8 @@ $ ./klx build
 
 # 4. Add dependency (15 seconds)
 $ ./klx add org.slf4j:slf4j-api:2.0.9
-> Added to kalix.yaml
-> Updated kalix.lock
+> Added to kalyx.yaml
+> Updated kalyx.lock
 > Downloaded slf4j-api-2.0.9.jar
 
 # 5. Work offline (20 seconds)

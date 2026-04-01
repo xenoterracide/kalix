@@ -9,7 +9,7 @@
 [cols="1,3"]
 |===
 | Primary Actor | <<Developer>> committing code
-| Scope | Kalix Build System - Git Integration
+| Scope | Kalyx Build System - Git Integration
 | Level | Subfunction
 | Trigger | Developer runs `git commit`
 |===
@@ -34,7 +34,7 @@
 == Preconditions
 
 * Git repository with `.git/hooks/` directory
-* Project has `kalix.yaml` configured
+* Project has `kalyx.yaml` configured
 * Hook script installed (manually or via `klx hooks install`)
 
 == Postconditions
@@ -123,7 +123,7 @@
 
 === During <<step-run>>: Custom Project Script
 
-*Condition:* Project defines custom script in `kalix.yaml`
+*Condition:* Project defines custom script in `kalyx.yaml`
 
 *Steps:*
 . Hook runs `klx script pre-commit`
@@ -170,13 +170,13 @@ scripts:
 
 == Comparison with Gradle
 
-| Aspect | Gradle | Kalix |
+| Aspect | Gradle | Kalyx |
 |--------|--------|-------|
 | Hook script | `./gradlew check` (slow) | `klx tool` (fast) |
 | Startup | JVM warmup | Leyden cached |
 | Dependencies | All plugin deps loaded | Only tool loaded |
 | Portability | gradlew vs gradlew.bat | Single binary |
-| Configuration | build.gradle.kts | kalix.yaml scripts |
+| Configuration | build.gradle.kts | kalyx.yaml scripts |
 
 == Frequency of Occurrence
 

@@ -9,7 +9,7 @@
 [cols="1,3"]
 |===
 | Primary Actor | <<Developer>> with unreliable network
-| Scope | Kalix Build System - Offline Workflow
+| Scope | Kalyx Build System - Offline Workflow
 | Level | User Goal
 | Trigger | Developer anticipates network unavailability
 |===
@@ -28,7 +28,7 @@
 
 == Preconditions
 
-* Project has `kalix.yaml` and `kalix.lock`
+* Project has `kalyx.yaml` and `kalyx.lock`
 * Developer has network access (temporarily)
 
 == Postconditions
@@ -86,9 +86,9 @@
 *Steps:*
 . Build fails with network error
 . System reports: "Attempted to download X but offline"
-. Developer checks if X is in `kalix.lock`
+. Developer checks if X is in `kalyx.lock`
 . If not in lock file: run `klx update` then `klx fetch` again
-. If in lock file but not cached: bug report to Kalix team
+. If in lock file but not cached: bug report to Kalyx team
 
 === During <<step-anticipate>>: Partial Cache Strategy
 
@@ -105,7 +105,7 @@
 *Condition:* Developer at company that requires internal artifact repository
 
 *Steps:*
-. `kalix.yaml` configured with corporate repository
+. `kalyx.yaml` configured with corporate repository
 . `klx fetch` uses configured repositories
 . Corporate firewall/proxy settings respected
 
@@ -114,9 +114,9 @@
 === What Gets Cached
 | Type | Location | Command |
 |------|----------|---------|
-| Dependencies | `~/.kalix/cache/` | `klx fetch` |
-| Tools | `~/.kalix/tools/` | `klx fetch --all` |
-| Wrapper | `~/.kalix/wrapper/` | Automatic on first use |
+| Dependencies | `~/.kalyx/cache/` | `klx fetch` |
+| Tools | `~/.kalyx/tools/` | `klx fetch --all` |
+| Wrapper | `~/.kalyx/wrapper/` | Automatic on first use |
 
 === Partial Cache Scenarios
 | Scenario | Command | Risk |
@@ -151,7 +151,7 @@ klx build --dry-run
 |------|------------------|------------|
 | Maven | `--offline` flag | Fails if not cached, no prefetch |
 | Gradle | `--offline` flag | Fails if not cached, no prefetch |
-| **Kalix** | `klx fetch --all` | Proactive, reports completeness |
+| **Kalyx** | `klx fetch --all` | Proactive, reports completeness |
 
 **Gradle/Maven pain:**
 ```bash
@@ -162,7 +162,7 @@ klx build --dry-run
 # Too late now!
 ```
 
-**Kalix solution:**
+**Kalyx solution:**
 ```bash
 # Before flight
 klx fetch --all

@@ -22,13 +22,13 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 **Gradle Solution:** Works fine with multi-line strings
 
-**Kalix Solution:** YAML supports multi-line strings naturally:
+**Kalyx Solution:** YAML supports multi-line strings naturally:
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 plugins:
-  - io.kalix.java:2.0.0
-  - io.kalix.errorprone:2.0.0
+  - io.kalyx.java:2.0.0
+  - io.kalyx.errorprone:2.0.0
 
 java:
   compiler:
@@ -72,12 +72,12 @@ public interface MyInterface {}
 
 Gradle's `javadoc` task runs before the processor generates `ImmutableMyInterface`, so Javadoc is incomplete.
 
-**Kalix Solution:** Explicit task dependencies and processor-aware source sets:
+**Kalyx Solution:** Explicit task dependencies and processor-aware source sets:
 
 ```yaml
 plugins:
-  - io.kalix.java:2.0.0
-  - io.kalix.immutables:2.0.0
+  - io.kalyx.java:2.0.0
+  - io.kalyx.immutables:2.0.0
 
 java:
   sourceSets:
@@ -113,12 +113,12 @@ Key: Tasks declare their inputs explicitly. Javadoc sees the generated sources a
 
 **Gradle Solution:** Can configure per source set.
 
-**Kalix Solution:** Tools configured per source set:
+**Kalyx Solution:** Tools configured per source set:
 
 ```yaml
 plugins:
-  - io.kalix.java:2.0.0
-  - io.kalix.checkstyle:2.0.0
+  - io.kalyx.java:2.0.0
+  - io.kalyx.checkstyle:2.0.0
 
 java:
   sourceSets:
@@ -163,12 +163,12 @@ scripts:
 - **Integration** (database, external services)
 - **E2E** (full system)
 
-**Kalix Solution:** First-class test source sets:
+**Kalyx Solution:** First-class test source sets:
 
 ```yaml
 plugins:
-  - io.kalix.java:2.0.0
-  - io.kalix.junit:2.0.0
+  - io.kalyx.java:2.0.0
+  - io.kalyx.junit:2.0.0
 
 java:
   sourceSets:
@@ -219,12 +219,12 @@ klx test --tags "slow" integrationTest
 - In the same subproject (for maintenance)
 - Separate artifacts (for other projects to depend on)
 
-**Kalix Solution:** Test fixtures as explicit module output:
+**Kalyx Solution:** Test fixtures as explicit module output:
 
 ```yaml
-# api/kalix.yaml
+# api/kalyx.yaml
 plugins:
-  - io.kalix.java:2.0.0
+  - io.kalyx.java:2.0.0
 
 java:
   sourceSets:
@@ -245,7 +245,7 @@ java:
 Another subproject using the fixtures:
 
 ```yaml
-# service/kalix.yaml
+# service/kalyx.yaml
 dependencies:
   compile:
     - project:api
@@ -308,7 +308,7 @@ No manual `dependsOn` needed for standard cases.
 
 ## Comparison
 
-| Requirement               | Maven            | Gradle               | Kalix                  |
+| Requirement               | Maven            | Gradle               | Kalyx                  |
 | ------------------------- | ---------------- | -------------------- | ---------------------- |
 | Long compiler args        | ❌ Painful XML   | ✅ Works             | ✅ Native YAML support |
 | Annotation proc + Javadoc | ❌ Manual config | ⚠️ Works but complex | ✅ Source set aware    |
@@ -375,7 +375,7 @@ Problems:
 - **No simple "optional"** - Everything must be a "feature variant"
 - **Complex debugging** - Which feature variant created which configuration?
 
-### Kalix Approach
+### Kalyx Approach
 
 See [14-dependencies-and-scopes.md](14-dependencies-and-scopes.md) for full dependency scope design.
 
@@ -429,9 +429,9 @@ dependencies:
 ### DevTools Example
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 plugins:
-  - io.kalix.spring-boot:2.0.0
+  - io.kalyx.spring-boot:2.0.0
 
 dependencies:
   compile:
@@ -473,7 +473,7 @@ Gradle's error messages are notoriously bad. But the problem isn't bad error mes
 - Configuration phases - errors in `afterEvaluate` with no context
 - Implicit dependencies - why did this task run?
 
-**Kalix simplicity enables good errors:**
+**Kalyx simplicity enables good errors:**
 
 - Static YAML - errors at parse time with line numbers
 - Explicit configuration - no "where did this come from"
@@ -494,11 +494,11 @@ Gradle's error messages are notoriously bad. But the problem isn't bad error mes
 
 (Which one required it? Why? Good luck.)
 
-**Kalix:**
+**Kalyx:**
 
 ```
 Error: Dependency resolution failed
-  File: kalix.yaml, line 12
+  File: kalyx.yaml, line 12
 
   dependencies:
     compile:

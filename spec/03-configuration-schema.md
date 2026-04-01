@@ -10,7 +10,7 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 ## Philosophy
 
-Like Maven, Kalix has a minimal core. Most functionality lives in plugins (even first-class ones). Unlike Gradle, we avoid a monolithic self-anchoring architecture.
+Like Maven, Kalyx has a minimal core. Most functionality lives in plugins (even first-class ones). Unlike Gradle, we avoid a monolithic self-anchoring architecture.
 
 YAML provides flexibility without marrying configuration to implementation. However, we need:
 
@@ -20,14 +20,14 @@ YAML provides flexibility without marrying configuration to implementation. Howe
 
 ## Solution: JSON Schema
 
-Kalix provides a JSON Schema that the IDE consumes for:
+Kalyx provides a JSON Schema that the IDE consumes for:
 
 - Type-aware autocomplete
 - Real-time validation
 - Hover documentation
 
 ```yaml
-# kalix.yaml - IDE knows this structure from schema
+# kalyx.yaml - IDE knows this structure from schema
 project:
   name: my-app
   version: 1.0.0
@@ -37,7 +37,7 @@ dependencies:
     - org.slf4j:slf4j-api:2.0.9
 
 plugins:
-  - io.kalix.container:2.0.0
+  - io.kalyx.container:2.0.0
 
 container:
   base: eclipse-temurin:21-jre-alpine
@@ -49,13 +49,13 @@ The IDE validates `container:` because the container plugin contributed that sch
 
 ### Core Schema
 
-Defines minimal Kalix without plugins:
+Defines minimal Kalyx without plugins:
 
 ```json
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://kalix.dev/schemas/core.json",
-  "title": "Kalix Configuration",
+  "$id": "https://kalyx.dev/schemas/core.json",
+  "title": "Kalyx Configuration",
   "type": "object",
   "properties": {
     "project": {
@@ -81,9 +81,9 @@ Defines minimal Kalix without plugins:
 Plugins can contribute schema fragments. The `klx` CLI aggregates:
 
 ```yaml
-# From plugin io.kalix.container
+# From plugin io.kalyx.container
 {
-  "$id": "https://kalix.dev/schemas/plugins/container.json",
+  "$id": "https://kalyx.dev/schemas/plugins/container.json",
   "properties":
     {
       "container":
@@ -101,10 +101,10 @@ Plugins can contribute schema fragments. The `klx` CLI aggregates:
 
 ### Schema Aggregation
 
-When a plugin is declared in `kalix.yaml`, `klx` merges its schema:
+When a plugin is declared in `kalyx.yaml`, `klx` merges its schema:
 
 ```bash
-$ klx schema update  # generates .kalix/schema.json for IDE
+$ klx schema update  # generates .kalyx/schema.json for IDE
 ```
 
 Or the IDE plugin calls `klx schema export` to get the merged schema.
@@ -147,5 +147,5 @@ container:
 
 - SnakeYAML Engine parses YAML 1.2
 - Schema validates the resulting JSON-equivalent structure
-- Lock file (`kalix.lock`) is JSON (no schema needed - machine generated)
-- Plugin schemas bundled in plugin JARs at `META-INF/kalix/schema.json`
+- Lock file (`kalyx.lock`) is JSON (no schema needed - machine generated)
+- Plugin schemas bundled in plugin JARs at `META-INF/kalyx/schema.json`

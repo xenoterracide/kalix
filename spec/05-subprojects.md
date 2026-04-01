@@ -10,7 +10,7 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 ## Naming
 
-We prefer **module**, but Maven and Gradle have established **subproject**. Kalix uses **subproject** for consistency with existing Java tooling.
+We prefer **module**, but Maven and Gradle have established **subproject**. Kalyx uses **subproject** for consistency with existing Java tooling.
 
 > A subproject may produce 0..n **modules** (where module ≈ JAR artifact).
 
@@ -20,7 +20,7 @@ Root requires configuration. Subprojects do not.
 
 ```
 my-app/
-├── kalix.yaml           # Root required
+├── kalyx.yaml           # Root required
 ├── api/                 # Subproject - no config needed
 │   └── src/main/java/
 ├── service/             # Subproject - no config needed
@@ -32,7 +32,7 @@ my-app/
 ### Root Configuration
 
 ```yaml
-# kalix.yaml (root)
+# kalyx.yaml (root)
 project:
   name: my-app
 
@@ -56,14 +56,14 @@ Zero-config subprojects inherit from root:
 
 ```
 api/
-├── kalix.yaml           # Optional - only if non-default
+├── kalyx.yaml           # Optional - only if non-default
 └── src/main/java/
 ```
 
-If `kalix.yaml` exists in a subproject, it layers with root:
+If `kalyx.yaml` exists in a subproject, it layers with root:
 
 ```yaml
-# api/kalix.yaml
+# api/kalyx.yaml
 project:
   name: my-app-api # Override artifact name
 
@@ -77,7 +77,7 @@ dependencies:
 Subprojects can depend on each other:
 
 ```yaml
-# service/kalix.yaml (optional)
+# service/kalyx.yaml (optional)
 dependencies:
   compile:
     - project:api # Depends on :api subproject
@@ -92,7 +92,7 @@ service/
     └── Service.java     # Imports from api/src/main/java
 ```
 
-Kalix infers the dependency from imports (compiler integration) or requires explicit declaration.
+Kalyx infers the dependency from imports (compiler integration) or requires explicit declaration.
 
 ## Artifact Naming
 
@@ -108,7 +108,7 @@ Kalix infers the dependency from imports (compiler integration) or requires expl
 A subproject can produce multiple artifacts:
 
 ```yaml
-# api/kalix.yaml
+# api/kalyx.yaml
 project:
   name: my-app-api
 
@@ -128,27 +128,27 @@ Produces:
 
 ## Maven Compatibility Shim
 
-The Java ecosystem has thousands of tools that understand `pom.xml`. Kalix provides bidirectional compatibility:
+The Java ecosystem has thousands of tools that understand `pom.xml`. Kalyx provides bidirectional compatibility:
 
 ### Reading pom.xml (Migration)
 
-For gradual migration, Kalix can read `pom.xml` as input:
+For gradual migration, Kalyx can read `pom.xml` as input:
 
 ```
 legacy-module/
-├── pom.xml              # Read by Kalix
+├── pom.xml              # Read by Kalyx
 └── src/main/java/       # Standard layout
 ```
 
 ```yaml
-# root kalix.yaml
+# root kalyx.yaml
 subprojects:
   include:
     - legacy-module:
         format: maven # Treat pom.xml as authoritative for this subproject
 ```
 
-Kalix reads:
+Kalyx reads:
 
 - `<dependencies>` and `<dependencyManagement>`
 - `<groupId>`, `<artifactId>`, `<version>`
@@ -163,16 +163,16 @@ Does NOT support:
 
 ### Generating pom.xml (Ecosystem Interop)
 
-Kalix generates `pom.xml` for tools that require it:
+Kalyx generates `pom.xml` for tools that require it:
 
 ```bash
 $ klx pom-generate
-# Generates pom.xml from kalix.yaml for IDE/tools
+# Generates pom.xml from kalyx.yaml for IDE/tools
 ```
 
 ```
 api/
-├── kalix.yaml           # Source of truth
+├── kalyx.yaml           # Source of truth
 ├── pom.xml              # Generated (can be gitignored)
 └── src/main/java/
 ```
@@ -185,15 +185,15 @@ Tools that work with generated `pom.xml`:
 - SonarQube for analysis
 - GitHub's dependency graph
 
-**Note on Renovate/Dependabot:** These tools understand Maven `pom.xml` natively. By generating `pom.xml`, Kalix projects get automated dependency management without waiting for Kalix-specific support in those tools. Renovate will update versions in `pom.xml`; `klx pom-sync` (or similar) can backport those changes to `kalix.yaml` if needed.
+**Note on Renovate/Dependabot:** These tools understand Maven `pom.xml` natively. By generating `pom.xml`, Kalyx projects get automated dependency management without waiting for Kalyx-specific support in those tools. Renovate will update versions in `pom.xml`; `klx pom-sync` (or similar) can backport those changes to `kalyx.yaml` if needed.
 
-The generated `pom.xml` is a **derived file** - `kalix.yaml` remains the source of truth. CI builds use `klx`, not Maven.
+The generated `pom.xml` is a **derived file** - `kalyx.yaml` remains the source of truth. CI builds use `klx`, not Maven.
 
 ## Comparison
 
-| Feature            | Maven            | Gradle            | Kalix                     |
+| Feature            | Maven            | Gradle            | Kalyx                     |
 | ------------------ | ---------------- | ----------------- | ------------------------- |
-| Root required      | `pom.xml`        | `settings.gradle` | `kalix.yaml`              |
+| Root required      | `pom.xml`        | `settings.gradle` | `kalyx.yaml`              |
 | Subproject config  | `pom.xml`        | `build.gradle`    | Optional (zero-config)    |
 | Inclusion          | `<modules>`      | `include()`       | `subprojects.include`     |
 | Cross-project deps | `<dependency>`   | `project(':api')` | `project:api` or inferred |
@@ -205,7 +205,7 @@ The generated `pom.xml` is a **derived file** - `kalix.yaml` remains the source 
 
 ```
 my-app/
-├── kalix.yaml
+├── kalyx.yaml
 ├── api/
 │   └── src/main/java/
 ├── service/
@@ -218,7 +218,7 @@ my-app/
 
 ```
 my-app/
-├── kalix.yaml
+├── kalyx.yaml
 └── modules/
     ├── api/
     │   └── src/main/java/
@@ -230,8 +230,8 @@ my-app/
 
 ```
 my-app/
-├── kalix.yaml              # Root
-├── new-api/                # Kalix native
+├── kalyx.yaml              # Root
+├── new-api/                # Kalyx native
 │   └── src/main/java/
 └── legacy-service/         # Maven compatibility
     ├── pom.xml

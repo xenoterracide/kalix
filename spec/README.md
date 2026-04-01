@@ -1,4 +1,4 @@
-# Kalix Specification
+# Kalyx Specification
 
 <!--
 SPDX-FileCopyrightText: Copyright © 2026 Caleb Cushing
@@ -6,7 +6,7 @@ SPDX-FileCopyrightText: Copyright © 2026 Caleb Cushing
 SPDX-License-Identifier: CC-BY-NC-SA-4.0
 -->
 
-This directory contains the specification for the Kalix build system.
+This directory contains the specification for the Kalyx build system.
 
 ## Documents
 

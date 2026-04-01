@@ -9,7 +9,7 @@
 [cols="1,3"]
 |===
 | Primary Actor | <<Developer>> adding library to project
-| Scope | Kalix Build System - Dependency Management
+| Scope | Kalyx Build System - Dependency Management
 | Level | User Goal
 | Trigger | Developer needs to use external library
 |===
@@ -34,15 +34,15 @@
 
 == Preconditions
 
-* Project has `kalix.yaml` with repositories configured
+* Project has `kalyx.yaml` with repositories configured
 * Developer knows Maven coordinate (group:artifact:version) or can search
 
 == Postconditions
 
 === Success Guarantee
 
-* Dependency declared in `kalix.yaml`
-* Exact version locked in `kalix.lock`
+* Dependency declared in `kalyx.yaml`
+* Exact version locked in `kalyx.lock`
 * Transitive dependencies resolved and locked
 * Build succeeds with new dependency available
 * Downloaded artifacts verified (checksums, signatures)
@@ -74,8 +74,8 @@
   detects and reports version conflicts_
 
 . [[step-update-config,System updates configuration files]] *System updates configuration files* +
-  _Adds dependency declaration to `kalix.yaml` (if not existing),
-  updates `kalix.lock` with exact resolved versions and hashes,
+  _Adds dependency declaration to `kalyx.yaml` (if not existing),
+  updates `kalyx.lock` with exact resolved versions and hashes,
   formats files consistently_
 
 . [[step-verify,System verifies build works]] *System verifies build works* +
@@ -112,7 +112,7 @@
 ** Force older (31.0.0) - may break other dependencies
 ** Exclude transitive and hope
 . Developer chooses resolution
-. System records choice in `kalix.lock` with explanation
+. System records choice in `kalyx.lock` with explanation
 . Resume at <<step-update-config>>
 
 === During <<step-download>>: Artifact Signature Missing

@@ -4,7 +4,7 @@ SPDX-FileCopyrightText: Copyright © 2026 Caleb Cushing
 SPDX-License-Identifier: CC-BY-NC-SA-4.0
 -->
 
-# Kalix Build System
+# Kalyx Build System
 
 SPDX-FileCopyrightText: Copyright © 2026 Caleb Cushing
 
@@ -14,7 +14,7 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 ## Project Overview
 
-**Kalix** is a build system and dependency manager for the Java ecosystem. It aims to provide:
+**Kalyx** is a build system and dependency manager for the Java ecosystem. It aims to provide:
 
 - **Configuration over code** - Declarative build definitions
 - **Performance** - Fast builds through smart caching and parallelism

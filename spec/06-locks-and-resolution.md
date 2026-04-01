@@ -10,12 +10,12 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 ## Lock Files Are Mandatory
 
-Kalix **always** uses a lock file. There is no mode without locking.
+Kalyx **always** uses a lock file. There is no mode without locking.
 
 ```
 my-project/
-├── kalix.yaml          # Declares dependencies (loose versions allowed)
-├── kalix.lock          # Exact resolved versions (JSON, committed)
+├── kalyx.yaml          # Declares dependencies (loose versions allowed)
+├── kalyx.lock          # Exact resolved versions (JSON, committed)
 └── src/
 ```
 
@@ -25,20 +25,20 @@ my-project/
 
 | Command              | Behavior                                               |
 | -------------------- | ------------------------------------------------------ |
-| `klx build`          | Uses `kalix.lock` exactly. Fails if lock is stale.     |
-| `klx test`           | Uses `kalix.lock` exactly. Fails if lock is stale.     |
-| `klx run`            | Uses `kalix.lock` exactly. Fails if lock is stale.     |
-| `klx update`         | Updates `kalix.yaml` deps and regenerates `kalix.lock` |
-| `klx update --check` | Exits non-zero if `kalix.lock` is out of date          |
+| `klx build`          | Uses `kalyx.lock` exactly. Fails if lock is stale.     |
+| `klx test`           | Uses `kalyx.lock` exactly. Fails if lock is stale.     |
+| `klx run`            | Uses `kalyx.lock` exactly. Fails if lock is stale.     |
+| `klx update`         | Updates `kalyx.yaml` deps and regenerates `kalyx.lock` |
+| `klx update --check` | Exits non-zero if `kalyx.lock` is out of date          |
 
 ### Stale Lock Detection
 
 ```bash
-$ cat kalix.yaml
+$ cat kalyx.yaml
 dependencies:
   - org.slf4j:slf4j-api:2.0.9
 
-$ cat kalix.lock
+$ cat kalyx.lock
 {
   "dependencies": [
     {"group": "org.slf4j", "artifact": "slf4j-api", "version": "2.0.7"}
@@ -46,7 +46,7 @@ $ cat kalix.lock
 }
 
 $ klx build
-Error: kalix.lock is stale. Declared: slf4j-api:2.0.9, Locked: 2.0.7
+Error: kalyx.lock is stale. Declared: slf4j-api:2.0.9, Locked: 2.0.7
 Run: klx update
 ```
 
@@ -57,7 +57,7 @@ Run: klx update
 ```bash
 # Fresh clone, no dependencies downloaded
 $ klx build
-Resolving from kalix.lock...
+Resolving from kalyx.lock...
 Downloading org.slf4j:slf4j-api:2.0.9...
 Downloading ch.qos.logback:logback-classic:1.4.14...
 Compiling...
@@ -65,7 +65,7 @@ Compiling...
 
 The `klx` CLI:
 
-1. Reads `kalix.lock`
+1. Reads `kalyx.lock`
 2. Checks local cache
 3. Downloads missing artifacts automatically
 4. Builds
@@ -73,7 +73,7 @@ The `klx` CLI:
 ### Cache Location
 
 ```
-~/.kalix/cache/
+~/.kalyx/cache/
 ├── v1/
 │   ├── https/repo1.maven.org/maven2/
 │   │   └── org/slf4j/slf4j-api/2.0.9/
@@ -120,7 +120,7 @@ JSON for simplicity and tooling. Includes cryptographic verification data:
 
 ## Supply Chain Security
 
-Kalix validates artifacts at download time to prevent supply chain attacks:
+Kalyx validates artifacts at download time to prevent supply chain attacks:
 
 ### Verification Steps
 
@@ -133,7 +133,7 @@ When downloading an artifact:
 5. **Save to cache** - Only after all checks pass
 
 ```
-~/.kalix/cache/
+~/.kalyx/cache/
 ├── v1/
 │   └── https/repo1.maven.org/maven2/
 │       └── org/slf4j/slf4j-api/2.0.9/
@@ -155,7 +155,7 @@ If an artifact has no signature in the repository:
 | Trust-on-first-use  | Require signature for updates, allow existing |
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 security:
   requireSignatures: true # Fail build on unsigned artifacts
   allowedKeys: # Restrict to specific signing keys
@@ -165,10 +165,10 @@ security:
 
 ### Key Management
 
-Kalix maintains a keyring of trusted signing keys:
+Kalyx maintains a keyring of trusted signing keys:
 
 ```
-~/.kalix/keys/
+~/.kalyx/keys/
 ├── trusted/
 │   ├── 0x1234567890ABCDEF.asc   # Maven Central signing key
 │   └── 0xFEDCBA0987654321.asc   # Organization key
@@ -241,14 +241,14 @@ $ klx update --interactive
 | pnpm      | Modifies (`--frozen-lockfile` opt-in) | `pnpm install`          |
 | Maven     | No lock file                          | N/A                     |
 | Gradle    | No lock file                          | N/A                     |
-| **Kalix** | **Immutable by default**              | **None (zero command)** |
+| **Kalyx** | **Immutable by default**              | **None (zero command)** |
 
 ## CI/CD
 
 ```yaml
 # GitHub Actions
 - run: klx build
-  # Fails if kalix.lock is stale or missing
+  # Fails if kalyx.lock is stale or missing
   # Downloads deps automatically
 ```
 
@@ -256,7 +256,7 @@ No separate install step. No `--immutable` flag to remember.
 
 ## Version Constraints
 
-In `kalix.yaml` (declarative, loose):
+In `kalyx.yaml` (declarative, loose):
 
 ```yaml
 dependencies:
@@ -268,7 +268,7 @@ dependencies:
   - org.slf4j:slf4j-api:">=2.0.0 <3.0.0"
 ```
 
-In `kalix.lock` (resolved, exact):
+In `kalyx.lock` (resolved, exact):
 
 ```json
 { "version": "2.0.9" }

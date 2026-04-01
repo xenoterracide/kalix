@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
-= Kalix Use Cases
+= Kalyx Use Cases
 
-This directory contains use case specifications for the Kalix build system, following the Cockburn format with semantic anchors and ubiquitous language.
+This directory contains use case specifications for the Kalyx build system, following the Cockburn format with semantic anchors and ubiquitous language.
 
 == Core Use Cases
 
@@ -29,7 +29,7 @@ This directory contains use case specifications for the Kalix build system, foll
 | xref:uc-004-migrate-from-gradle.adoc[UC-004]
 | Migrate from Gradle
 | Developer / Team Lead
-| Convert existing Gradle project to Kalix
+| Convert existing Gradle project to Kalyx
 
 | xref:uc-005-manage-shared-configuration.adoc[UC-005]
 | Manage Shared Configuration
@@ -78,7 +78,7 @@ Each use case follows the link:https://en.wikipedia.org/wiki/Use_case#Cockburn_s
 
 == Creating New Use Cases
 
-See the link:/home/ai/kalix/.agents/skills/use-case-creator/[use-case-creator skill] for:
+See the link:/home/ai/kalyx/.agents/skills/use-case-creator/[use-case-creator skill] for:
 
 * Template structure
 * Semantic anchor patterns

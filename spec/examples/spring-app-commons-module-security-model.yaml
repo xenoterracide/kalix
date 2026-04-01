@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
-# Kalix Configuration for module/security-model
+# Kalyx Configuration for module/security-model
 # Compare to: module/security-model/build.gradle.kts
 
 #
@@ -23,7 +23,7 @@ SPDX-License-Identifier: MIT
 
 # Additional plugins for this module
 plugins:
-  - io.kalix.jpamodel:2.0.0
+  - io.kalyx.jpamodel:2.0.0
 
 # Module dependencies
 # Note: Versions come from BOMs, no need to specify
@@ -91,7 +91,7 @@ scripts:
         diagrams/class.puml
 
 # Note: The classDiagrams DSL from Gradle plugin is custom
-# In Kalix, this would either be:
+# In Kalyx, this would either be:
 # 1. A script (above)
-# 2. A dedicated plugin (io.kalix.plantuml) with configuration
+# 2. A dedicated plugin (io.kalyx.plantuml) with configuration
 # 3. An external tool run via klx tool

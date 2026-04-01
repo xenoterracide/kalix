@@ -7,11 +7,11 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 -->
 
 > **Status:** 🚧 Draft  
-> **Note:** Premature consideration for future Kalix repository hosting
+> **Note:** Premature consideration for future Kalyx repository hosting
 
 ## Philosophy
 
-The Java community is increasingly failing to follow established best practices. If Kalix operates its own artifact hosting service, we should make it **more painful to violate conventions** than to follow them.
+The Java community is increasingly failing to follow established best practices. If Kalyx operates its own artifact hosting service, we should make it **more painful to violate conventions** than to follow them.
 
 This is about two things:
 
@@ -50,7 +50,7 @@ Extract group: org.apache.commons
   ↓
 Map to domain: apache.org
   ↓
-DNS query: apache.org TXT kalix-key
+DNS query: apache.org TXT kalyx-key
   ↓
 Verify: Published key matches artifact signature
   ↓
@@ -74,11 +74,11 @@ Maven Central requires:
 
 ### Enhanced DNS Verification
 
-Kalix requires DNS TXT record verification:
+Kalyx requires DNS TXT record verification:
 
 ```dns
 # For group org.apache.commons
-apache.org. IN TXT "kalix-key=0x1234567890ABCDEF"
+apache.org. IN TXT "kalyx-key=0x1234567890ABCDEF"
 ```
 
 This TXT record contains the **public signing key fingerprint** used to sign artifacts. This binds:
@@ -97,7 +97,7 @@ Even if they typosquat the group ID (`org.apachee.commons`), their key won't mat
 
 ### JPMS Module Name Enforcement
 
-Kalix would extend this to JPMS module names:
+Kalyx would extend this to JPMS module names:
 
 | Module Name                | Status           | Notes                                    |
 | -------------------------- | ---------------- | ---------------------------------------- |
@@ -132,7 +132,7 @@ module org.springframework.core {
 }
 ```
 
-If Spring wanted to publish to Kalix hosting:
+If Spring wanted to publish to Kalyx hosting:
 
 1. `org.springframework.core` → Immediate approval (they own springframework.org)
 2. `spring.core` → Triggers manual review ticket:
@@ -146,7 +146,7 @@ If Spring wanted to publish to Kalix hosting:
 | ----------------------- | ---------------------------------------------------- |
 | Local builds            | No restrictions. Use `spring.core` if you want.      |
 | Internal corporate repo | Configurable policy (can enforce or ignore)          |
-| Kalix public repository | Strict enforcement with manual review for violations |
+| Kalyx public repository | Strict enforcement with manual review for violations |
 
 ## The Migration Path
 
@@ -171,7 +171,7 @@ Maven Central's group ID verification solved this for coordinates. JPMS needs th
 
 ### Comparison Table
 
-| Aspect                   | Maven Central | Kalix (Proposed)      |
+| Aspect                   | Maven Central | Kalyx (Proposed)      |
 | ------------------------ | ------------- | --------------------- |
 | Group ID verification    | DNS-based     | DNS-based (same)      |
 | Module name verification | None          | DNS-based reverse-DNS |
@@ -183,16 +183,16 @@ Maven Central's group ID verification solved this for coordinates. JPMS needs th
 Local projects can suppress warnings:
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 governance:
   moduleNameWarnings: false # Silence reverse-DNS warnings locally
 ```
 
-This does not affect publishing to Kalix repositories—only local builds.
+This does not affect publishing to Kalyx repositories—only local builds.
 
 ## Multi-Step Publishing Workflow
 
-Kalix repository publishing requires **two-step approval** for security:
+Kalyx repository publishing requires **two-step approval** for security:
 
 ### Step 1: CI/CD Upload (Automated)
 
@@ -244,10 +244,10 @@ klx publish --approve com.example:my-lib:1.0.0
 
 ### Enterprise: Multi-Person Approval
 
-Enterprise Kalix servers can require **2-person sign-off**:
+Enterprise Kalyx servers can require **2-person sign-off**:
 
 ```yaml
-# kalix-server.yaml (enterprise config)
+# kalyx-server.yaml (enterprise config)
 publishing:
   approval:
     requiredApprovers: 2
@@ -263,10 +263,10 @@ Flow:
 
 ### Repository Configuration
 
-Approval workflows are configured at the repository/server level (not in project `kalix.yaml`):
+Approval workflows are configured at the repository/server level (not in project `kalyx.yaml`):
 
 ```yaml
-# kalix-server.yaml (repository configuration)
+# kalyx-server.yaml (repository configuration)
 publishing:
   approval:
     requiredApprovers: 1 # 1 for standard, 2 for enterprise
@@ -301,12 +301,12 @@ Consider:
 Potential approach:
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 provenance:
   slsa: true # Generate SLSA attestations
   reproducible: true # Fail build if not reproducible
   transparency:
-    log: https://kalix-transparency.dev
+    log: https://kalyx-transparency.dev
     include: all # All releases logged publicly
 ```
 
@@ -320,14 +320,14 @@ provenance:
 | Transparency        | Public append-only log         | Backlog  |
 | Reproducibility     | Bit-for-bit identical builds   | Backlog  |
 
-This would make Kalix the most secure artifact repository system in existence.
+This would make Kalyx the most secure artifact repository system in existence.
 
 ## Open Questions
 
-1. Should Kalix even operate a public repository, or focus on tooling?
+1. Should Kalyx even operate a public repository, or focus on tooling?
 2. How do we handle legitimate legacy projects that predate JPMS?
 3. What about projects that don't own a domain (personal projects)?
-4. Should there be a "Kalix Core" namespace (`io.kalix.*`) for common utilities?
+4. Should there be a "Kalyx Core" namespace (`io.kalyx.*`) for common utilities?
 5. How do we prevent namespace squatting before domain verification?
 6. How do we handle DNS compromise scenarios (domain hijacking)?
 

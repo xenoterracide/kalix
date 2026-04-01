@@ -9,9 +9,9 @@
 [cols="1,3"]
 |===
 | Primary Actor | <<Developer>> migrating existing project
-| Scope | Kalix Build System - Migration Tooling
+| Scope | Kalyx Build System - Migration Tooling
 | Level | User Goal
-| Trigger | Team decides to migrate from Gradle to Kalix
+| Trigger | Team decides to migrate from Gradle to Kalyx
 |===
 
 == Stakeholders and Interests
@@ -28,7 +28,7 @@
   Must ensure CI/CD continues working.
 
 *<<Build Engineer>>*::
-  Needs to understand how Kalix replaces Gradle conventions.
+  Needs to understand how Kalyx replaces Gradle conventions.
   Wants to verify parity in build outputs.
 
 == Preconditions
@@ -41,10 +41,10 @@
 
 === Success Guarantee
 
-* `kalix.yaml` created with equivalent configuration
+* `kalyx.yaml` created with equivalent configuration
 * Dependencies migrated to lock file
 * Build produces equivalent artifacts
-* CI/CD updated to use Kalix
+* CI/CD updated to use Kalyx
 * Gradle files removed or archived
 
 === Minimal Guarantee
@@ -64,9 +64,9 @@
   detects custom logic that cannot be migrated_
 
 . [[step-convert,System converts basic configuration]] *System converts basic configuration* +
-  _Creates `kalix.yaml` with:
+  _Creates `kalyx.yaml` with:
   Project metadata (group, name from gradle properties),
-  Plugin equivalents (java-library -> io.kalix.java),
+  Plugin equivalents (java-library -> io.kalyx.java),
   Repositories,
   Dependencies with versions,
   Basic compiler settings_
@@ -92,7 +92,7 @@
   Compares outputs with Gradle build_
 
 . [[step-complete,Migration complete]] *Migration complete* +
-  _`kalix.lock` generated,
+  _`kalyx.lock` generated,
   CI updated,
   Gradle files can be removed_
 
@@ -120,7 +120,7 @@
 
 *Steps:*
 . System reads version catalog
-. Converts to inline versions in `kalix.yaml`
+. Converts to inline versions in `kalyx.yaml`
 . Preserves bundle definitions as YAML anchors:
 ```yaml
 versions:
@@ -135,8 +135,8 @@ versions:
 
 *Steps:*
 . System parses module structure
-. Creates root `kalix.yaml` with `subprojects:` section
-. Each module gets own `kalix.yaml`
+. Creates root `kalyx.yaml` with `subprojects:` section
+. Each module gets own `kalyx.yaml`
 . Module dependencies (project(":foo") -> project:foo) converted
 
 === During <<step-manual>>: Custom Plugin Needed
@@ -146,14 +146,14 @@ versions:
 *Steps:*
 . Developer extracts plugin logic
 . Options:
-** Create Kalix plugin (for reusable logic)
-** Inline configuration in `kalix.yaml` (for project-specific)
+** Create Kalyx plugin (for reusable logic)
+** Inline configuration in `kalyx.yaml` (for project-specific)
 ** Use scripts section for simple automation
 . Reference: `docs/examples/spring-app-commons-comparison.md`
 
 === During <<step-verify>>: Build Divergence
 
-*Condition:* Kalix build produces different artifacts than Gradle
+*Condition:* Kalyx build produces different artifacts than Gradle
 
 *Steps:*
 . System compares:
@@ -172,7 +172,7 @@ versions:
 *Steps:*
 . System reports: "Limited conversion support for Groovy DSL with dynamic blocks"
 . Suggests: "Consider manual migration using docs/examples"
-. Creates minimal `kalix.yaml` template
+. Creates minimal `kalyx.yaml` template
 . *ENDS* (partial migration)
 
 == Technology and Data Variations
@@ -184,22 +184,22 @@ versions:
 * buildSrc - Manual migration
 
 === What Migrates Automatically
-| Gradle | Kalix |
+| Gradle | Kalyx |
 |--------|-------|
-| `plugins { id("java-library") }` | `plugins: [io.kalix.java]` |
+| `plugins { id("java-library") }` | `plugins: [io.kalyx.java]` |
 | `dependencies { implementation(...) }` | `dependencies: { implementation: [...] }` |
 | `repositories { mavenCentral() }` | `repositories: [https://repo1.maven.org/...]` |
 | `java { toolchain { ... } }` | `toolchain: { languageVersion: ... }` |
 | `group = "com.example"` | `project: { group: com.example }` |
 
 === What Requires Manual Work
-| Gradle | Kalix Approach |
+| Gradle | Kalyx Approach |
 |--------|----------------|
-| Custom buildSrc plugins | Create Kalix plugin or inline |
-| `afterEvaluate { }` | Often unnecessary in Kalix |
+| Custom buildSrc plugins | Create Kalyx plugin or inline |
+| `afterEvaluate { }` | Often unnecessary in Kalyx |
 | `tasks.register` custom tasks | Scripts section or custom plugin |
 | Complex capability resolution | Simplified dependency model |
-| Gradle-specific test suites | Kalix test suites |
+| Gradle-specific test suites | Kalyx test suites |
 
 == Special Requirements
 
@@ -216,7 +216,7 @@ versions:
 - buildSrc with 5 convention plugins
 - Version catalog + external catalog
 
-**After (Kalix):**
+**After (Kalyx):**
 - 9 configuration files
 - YAML configuration
 - First-party plugins
@@ -232,7 +232,7 @@ May affect multiple projects in organization.
 == Open Issues
 
 * [[groovy-dsl]] How much Groovy DSL complexity should we support?
-* [[custom-plugin-mapping]] Mapping from Gradle plugins to Kalix plugins?
+* [[custom-plugin-mapping]] Mapping from Gradle plugins to Kalyx plugins?
 * [[verification]] Automated verification that migrated build produces same outputs?
 
 == Related Use Cases

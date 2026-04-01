@@ -9,7 +9,7 @@
 [cols="1,3"]
 |===
 | Primary Actor | <<Developer>> working on Java project
-| Scope | Kalix Build System - Development Context
+| Scope | Kalyx Build System - Development Context
 | Level | User Goal
 | Trigger | Developer needs to compile, test, or run application
 |===
@@ -33,7 +33,7 @@
 == Preconditions
 
 * <<Developer>> has Java source code in standard layout
-* Project has `kalix.yaml` configuration
+* Project has `kalyx.yaml` configuration
 * Dependencies declared in configuration
 
 == Postconditions
@@ -56,7 +56,7 @@
   _Developer runs `klx build` in project directory_
 
 . [[step-resolve,System resolves and downloads dependencies]] *System resolves and downloads dependencies* +
-  _System reads `kalix.lock`, downloads any missing artifacts from repositories,
+  _System reads `kalyx.lock`, downloads any missing artifacts from repositories,
   verifies signatures and checksums_
 
 . [[step-incremental,System determines incremental work needed]] *System determines incremental work needed* +
@@ -86,7 +86,7 @@
 
 === During <<step-resolve>>: Lock File Stale
 
-*Condition:* `kalix.yaml` dependencies changed but `kalix.lock` not updated
+*Condition:* `kalyx.yaml` dependencies changed but `kalyx.lock` not updated
 
 *Steps:*
 . System detects version mismatch
@@ -152,7 +152,7 @@
 === Source Layouts Supported
 * Maven standard (`src/main/java`, `src/test/java`)
 * Flat (`src/*.java`)
-* Custom (configured in `kalix.yaml`)
+* Custom (configured in `kalyx.yaml`)
 
 === Test Frameworks
 * JUnit 5 (Jupiter)
@@ -176,7 +176,7 @@ Estimated: 50-200 builds per developer per day.
 
 * [[incremental-annotation-processing]] How to handle annotation processors that generate code based on multiple source files?
 * [[test-parallelism]] Optimal test parallelization strategy for different hardware?
-* [[build-scan]] Should Kalix provide build scan/tracing for debugging slow builds?
+* [[build-scan]] Should Kalyx provide build scan/tracing for debugging slow builds?
 
 == Related Use Cases
 

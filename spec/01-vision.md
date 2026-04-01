@@ -1,15 +1,15 @@
-# Kalix Vision & Philosophy
+# Kalyx Vision & Philosophy
 
 <!--
 SPDX-FileCopyrightText: Copyright © 2026 Caleb Cushing
-SPDX-FileCopyrightText: 2026 Kalix Contributors
+SPDX-FileCopyrightText: 2026 Kalyx Contributors
 
 SPDX-License-Identifier: CC-BY-NC-SA-4.0
 -->
 
 > **Status:** 🚧 Draft
 
-## What is Kalix?
+## What is Kalyx?
 
 A build system and dependency manager for the Java ecosystem.
 
@@ -61,7 +61,7 @@ Built for how we work in 2026.
 - **Cache-friendly** - Unlike `npm ci`, we don't spoil caches
 
 ```yaml
-# .config/kalix/10-company.yaml - shared via git submodule
+# .config/kalyx/10-company.yaml - shared via git submodule
 project:
   group: com.mycompany
   
@@ -81,7 +81,7 @@ Compare:
 
 ```bash
 #!/bin/sh
-# .git/hooks/pre-commit with Kalix - SIMPLE
+# .git/hooks/pre-commit with Kalyx - SIMPLE
 klx tool com.pinterest.ktlint:ktlint-cli:1.2.0 --git-pre-commit-hook
 ```
 
@@ -96,7 +96,7 @@ klx tool com.pinterest.ktlint:ktlint-cli:1.2.0 --git-pre-commit-hook
 
 `npm ci` deletes `node_modules` and reinstalls everything. This is slow and wasteful.
 
-Kalix:
+Kalyx:
 - Lock file guarantees reproducibility
 - Cache is never invalidated unless dependencies actually change
 - Incremental downloads (only changed artifacts)
@@ -106,7 +106,7 @@ Kalix:
 
 ### Project Leyden + jlink (Not GraalVM Native)
 
-Kalix targets **Project Leyden** for fast startup, not GraalVM native image:
+Kalyx targets **Project Leyden** for fast startup, not GraalVM native image:
 
 - **Keep the JVM** - JIT optimization, full tooling, debugging, profiling
 - **AOT caching** - Pre-initialized, pre-resolved classes for fast startup
@@ -114,12 +114,12 @@ Kalix targets **Project Leyden** for fast startup, not GraalVM native image:
 
 ### jlink Custom Runtime
 
-Because Kalix is **full JPMS**, we can use `jlink` to create minimal runtime images:
+Because Kalyx is **full JPMS**, we can use `jlink` to create minimal runtime images:
 
 ```bash
 # Custom runtime with only needed modules
-jlink --module-path kalix.jar:$JAVA_HOME/jmods \
-      --add-modules io.kalix.cli,io.kalix.resolution \
+jlink --module-path kalyx.jar:$JAVA_HOME/jmods \
+      --add-modules io.kalyx.cli,io.kalyx.resolution \
       --output klx-runtime
 ```
 
@@ -135,18 +135,18 @@ Leyden AOT caching can be specialized per workflow:
 ```bash
 # AOT-optimized for testing (no checkstyle, no publishing code loaded)
 klx test
-# Uses: ~/.kalix/leyden/klx-test.cds
+# Uses: ~/.kalyx/leyden/klx-test.cds
 
 # AOT-optimized for tool execution (no compilation infrastructure)
 klx tool com.pinterest.ktlint:ktlint-cli:1.2.0
-# Uses: ~/.kalix/leyden/klx-tool.cds
+# Uses: ~/.kalyx/leyden/klx-tool.cds
 ```
 
 Each command gets its own **AOT cache profile** with only the classes needed for that workflow. No wasted time loading checkstyle code when running tests.
 
 ### No Classpath Hell
 
-Gradle and Maven dump all plugins and dependencies onto one giant classpath. Kalix uses JPMS modules:
+Gradle and Maven dump all plugins and dependencies onto one giant classpath. Kalyx uses JPMS modules:
 
 ```groovy
 // Gradle - everything on classpath, conflicts everywhere
@@ -156,16 +156,16 @@ plugins { id 'plugin-b' version '2.0' }                   // Uses guava 30
 ```
 
 ```yaml
-# Kalix - isolated modules
+# Kalyx - isolated modules
 plugins:
-  - io.kalix.java:2.0.0      # module io.kalix.java, uses guava 28 internally
-  - io.kalix.checkstyle:2.0.0 # module io.kalix.checkstyle, uses guava 30 internally
+  - io.kalyx.java:2.0.0      # module io.kalyx.java, uses guava 28 internally
+  - io.kalyx.checkstyle:2.0.0 # module io.kalyx.checkstyle, uses guava 30 internally
 # No conflict - each plugin has its own module layer
 ```
 
 **Potential: JPMS-Required Ecosystem**
 
-Kalix plugins may be required to be JPMS-compatible:
+Kalyx plugins may be required to be JPMS-compatible:
 
 | Requirement | Meaning |
 |-------------|---------|
@@ -178,7 +178,7 @@ This prevents the "plugin pulled in Guava 28 breaking my Guava 30" nightmare tha
 
 ### Lazy Loading
 
-Kalix only loads what it needs:
+Kalyx only loads what it needs:
 
 ```bash
 # Only loads the tool resolution plugin
@@ -194,14 +194,14 @@ klx test
 # Doesn't load publishing, security scanning, etc.
 ```
 
-Gradle loads the entire build script and all plugins on every invocation. Kalix defers loading until actually required.
+Gradle loads the entire build script and all plugins on every invocation. Kalyx defers loading until actually required.
 
 ## Configuration Format
 
-Kalix uses YAML for project configuration (supports anchors for DRY configs):
+Kalyx uses YAML for project configuration (supports anchors for DRY configs):
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 project:
   name: my-app
   version: 1.0.0

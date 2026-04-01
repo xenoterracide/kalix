@@ -1,4 +1,4 @@
-# Spring App Commons: Gradle vs Kalix Comparison
+# Spring App Commons: Gradle vs Kalyx Comparison
 
 <!--
 SPDX-FileCopyrightText: Copyright © 2024-2026 Caleb Cushing
@@ -8,15 +8,15 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 ## File Count
 
-| Gradle Files                                    | Kalix Files                            |
+| Gradle Files                                    | Kalyx Files                            |
 | ----------------------------------------------- | -------------------------------------- |
-| `build.gradle.kts` (root)                       | `kalix.yaml` (root)                    |
+| `build.gradle.kts` (root)                       | `kalyx.yaml` (root)                    |
 | `settings.gradle.kts`                           | (merged into root)                     |
 | `gradle/libs.versions.toml`                     | (merged into root)                     |
 | `buildSrc/build.gradle.kts`                     | (no equivalent - plugins are external) |
 | `buildSrc/settings.gradle.kts`                  | (no equivalent)                        |
 | `buildSrc/src/main/kotlin/our.*.gradle.kts` x 5 | (no equivalent)                        |
-| `module/*/build.gradle.kts` x 8                 | `module/*/kalix.yaml` x 8              |
+| `module/*/build.gradle.kts` x 8                 | `module/*/kalyx.yaml` x 8              |
 | **Total: 17 files**                             | **Total: 9 files**                     |
 
 ## Lines of Code
@@ -28,7 +28,7 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 - settings.gradle.kts: 98 lines
 - build.gradle.kts: 74 lines
 
-**Kalix (kalix.yaml): ~70 lines**
+**Kalyx (kalyx.yaml): ~70 lines**
 
 ### Module Configuration (commons-model example)
 
@@ -59,7 +59,7 @@ testing {
 }
 ```
 
-**Kalix (kalix.yaml): ~25 lines**
+**Kalyx (kalyx.yaml): ~25 lines**
 
 ```yaml
 test:
@@ -86,9 +86,9 @@ test:
 - Inter-plugin dependencies and ordering
 - Workarounds for Gradle bugs (plainJavadocJar/javadocJar conflict)
 
-**Kalix:**
+**Kalyx:**
 
-- First-party plugins from `io.kalix.*`
+- First-party plugins from `io.kalyx.*`
 - No custom buildSrc needed
 - Version updates via plugin version, not buildSrc changes
 
@@ -101,9 +101,9 @@ test:
 - Bundle definitions scattered
 - `sbd4` catalog alias in settings.gradle.kts
 
-**Kalix:**
+**Kalyx:**
 
-- Inline `versions:` section in root kalix.yaml
+- Inline `versions:` section in root kalyx.yaml
 - No external catalog dependency
 - Bundle expansion automatic or explicit in dependencies
 
@@ -121,7 +121,7 @@ testing {
 }
 ```
 
-**Kalix:**
+**Kalyx:**
 
 ```yaml
 test:
@@ -142,25 +142,25 @@ buildscript { dependencyLocking { lockAllConfigurations() } }
 dependencyLocking { lockAllConfigurations() }
 ```
 
-**Kalix:**
+**Kalyx:**
 
 ```yaml
 # In root only - inherited by all subprojects
 # Lock files always enabled, always immutable
 ```
 
-## What Kalix Removes
+## What Kalyx Removes
 
 1. **buildSrc/** - Custom convention plugins → First-party plugins
-2. **gradle/libs.versions.toml** → Inline versions in kalix.yaml
+2. **gradle/libs.versions.toml** → Inline versions in kalyx.yaml
 3. **settings.gradle.kts complexity** → Auto-discovery, no component rules
 4. **Dependency locking boilerplate** → Always on, inherited
 5. **Task configuration** → Sensible defaults, minimal override
 6. **Plugin ordering workarounds** → Explicit dependency model
 
-## What Kalix Adds
+## What Kalyx Adds
 
-1. **Layered configuration** - Share standards via `.config/kalix/`
+1. **Layered configuration** - Share standards via `.config/kalyx/`
 2. **First-class scripts** - `klx tool` for ad-hoc tasks
 3. **Immutable versions** - Security by default
 4. **Simpler test suites** - YAML instead of Kotlin DSL
@@ -171,7 +171,7 @@ dependencyLocking { lockAllConfigurations() }
 High-value targets for migration:
 
 1. **Dependency declarations** - Straightforward YAML conversion
-2. **Test suite configuration** - Much simpler in Kalix
+2. **Test suite configuration** - Much simpler in Kalyx
 3. **Version catalog** - Consolidate into root
 4. **Convention plugins** - Replace with first-party plugins
 
@@ -179,4 +179,4 @@ Challenging areas:
 
 1. **Custom build logic** - May need custom plugins
 2. **Complex dependency rules** - Component metadata rules in Gradle
-3. **Integration with external plugins** - Need Kalix equivalents
+3. **Integration with external plugins** - Need Kalyx equivalents

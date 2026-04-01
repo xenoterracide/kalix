@@ -11,7 +11,7 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 ## Philosophy: Maven Syntax, Gradle Correctness
 
-Kalix uses **Maven 4 polyglot YAML syntax** (`pom.yml`) for familiarity, with **Gradle's correct classpath modeling** internally.
+Kalyx uses **Maven 4 polyglot YAML syntax** (`pom.yml`) for familiarity, with **Gradle's correct classpath modeling** internally.
 
 ## Maven Scopes (Copy-Paste Compatible)
 
@@ -26,7 +26,7 @@ dependencies:
   - org.springframework.boot:spring-boot-dependencies:3.2.0@bom
 ```
 
-**Note:** This is actual Maven 4 polyglot YAML syntax. A valid `pom.yml` from Maven 4 should work in Kalix with minimal changes.
+**Note:** This is actual Maven 4 polyglot YAML syntax. A valid `pom.yml` from Maven 4 should work in Kalyx with minimal changes.
 
 ## Scope Mapping
 
@@ -47,7 +47,7 @@ dependencies:
 
 ## Extended Scopes
 
-Beyond Maven's basic scopes, Kalix adds:
+Beyond Maven's basic scopes, Kalyx adds:
 
 | Scope                 | Available At     | Transitive | Use Case               |
 | --------------------- | ---------------- | ---------- | ---------------------- |
@@ -74,7 +74,7 @@ dependencies:
 ### Local BOM Definition
 
 ```yaml
-# my-company-bom/kalix.yaml
+# my-company-bom/kalyx.yaml
 project:
   name: my-company-bom
   version: 1.0.0

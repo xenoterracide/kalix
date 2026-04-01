@@ -10,7 +10,7 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 ## No Task Chaining
 
-Unlike Make, Maven, and Gradle, Kalix does not support `klx clean build`.
+Unlike Make, Maven, and Gradle, Kalyx does not support `klx clean build`.
 
 ```bash
 # This doesn't work:
@@ -81,7 +81,7 @@ klx [global-options] <command> [command-options]
 
 **Note:** There is no `run-the-application` command. Running an application is:
 
-- A plugin concern (e.g., `io.kalix.spring-boot` plugin provides `klx spring-boot run`)
+- A plugin concern (e.g., `io.kalyx.spring-boot` plugin provides `klx spring-boot run`)
 - Or a script: `klx run start` where `scripts.start: klx exec java -jar build/libs/app.jar`
 
 ## Clean is for Debugging
@@ -110,7 +110,7 @@ klx build
 | Before release (paranoia)             | Not needed - trust your builds      |
 | CI                                    | Never clean - ephemeral environment |
 
-If you find yourself running `klx clean` regularly, that's a bug in Kalix. File an issue.
+If you find yourself running `klx clean` regularly, that's a bug in Kalyx. File an issue.
 
 ### Clean Command
 
@@ -126,14 +126,14 @@ Simple. Destructive. For debugging only.
 
 ## Comparison
 
-| Tool      | Chaining? | Example                      | Kalix Equivalent          |
+| Tool      | Chaining? | Example                      | Kalyx Equivalent          |
 | --------- | --------- | ---------------------------- | ------------------------- |
 | Make      | Yes       | `make clean build`           | `klx clean && klx build`  |
 | Maven     | Yes       | `mvn clean install`          | `klx clean && klx build`  |
 | Gradle    | Yes       | `gradle clean build`         | `klx clean && klx build`  |
 | Git       | **No**    | `git commit && git push`     | (encourages explicitness) |
 | Cargo     | **No**    | `cargo clean && cargo build` | `klx clean && klx build`  |
-| **Kalix** | **No**    | N/A                          | `klx clean && klx build`  |
+| **Kalyx** | **No**    | N/A                          | `klx clean && klx build`  |
 
 ## Other Global Flags
 
@@ -150,14 +150,14 @@ Would execute:
 
 ### `klx fetch` - Download Dependencies
 
-While Kalix downloads dependencies on demand, you may want to prefetch everything (e.g., before getting on a plane):
+While Kalyx downloads dependencies on demand, you may want to prefetch everything (e.g., before getting on a plane):
 
 ```bash
 # Download all dependencies for current project
 $ klx fetch
-Resolving dependencies from kalix.lock...
+Resolving dependencies from kalyx.lock...
 Downloading 47 artifacts...
-Done. All dependencies cached in ~/.kalix/
+Done. All dependencies cached in ~/.kalyx/
 
 # Download dependencies and tools
 $ klx fetch --all
@@ -180,10 +180,10 @@ $ klx build  # Uses cached artifacts, no network needed
 | --------- | ------------------- | ---------------------------------------- |
 | Gradle    | `--offline` flag    | Fail if not cached                       |
 | Maven     | `--offline` flag    | Fail if not cached                       |
-| **Kalix** | Downloads on demand | Always works if cached, downloads if not |
-| **Kalix** | `fetch` command     | Proactive download (git-inspired)        |
+| **Kalyx** | Downloads on demand | Always works if cached, downloads if not |
+| **Kalyx** | `fetch` command     | Proactive download (git-inspired)        |
 
-Kalix doesn't need `--offline` because:
+Kalyx doesn't need `--offline` because:
 
 1. Downloads are automatic when needed
 2. Lock files ensure reproducibility
@@ -204,11 +204,11 @@ klx --rerun build
 | Make      | Yes       | `make clean && make`     |
 | Maven     | Yes       | `mvn clean install`      |
 | Gradle    | Yes       | `gradle clean build`     |
-| **Kalix** | **No**    | `klx clean && klx build` |
+| **Kalyx** | **No**    | `klx clean && klx build` |
 
 ## `klx run` - Execute Scripts
 
-Execute user-defined scripts from `kalix.yaml`:
+Execute user-defined scripts from `kalyx.yaml`:
 
 ```bash
 # Run a script
@@ -239,7 +239,7 @@ klx run cli --input data.csv  # Run CLI tool
 
 ### Script Arguments
 
-Scripts defined in `kalix.yaml` receive arguments directly:
+Scripts defined in `kalyx.yaml` receive arguments directly:
 
 ```yaml
 scripts:
@@ -319,10 +319,10 @@ scripts:
 
 ## Tools and Scripts
 
-Kalix separates **tool definitions** from **script workflows**:
+Kalyx separates **tool definitions** from **script workflows**:
 
 ```yaml
-# kalix.yaml
+# kalyx.yaml
 
 # Tools define how to run external programs
 tools:
@@ -534,7 +534,7 @@ scripts:
 
 **Key difference:**
 
-- `java-exec` - Kalix manages the artifact (download, cache, classpath)
+- `java-exec` - Kalyx manages the artifact (download, cache, classpath)
 - `exec` - You manage the tool (install uv, install reuse via uv, etc.)
 
 ### Ad-Hoc Tool Execution (dlx-style)
@@ -563,13 +563,13 @@ Benefits:
 - No YAML config needed for one-off runs
 - Perfect for git hooks
 - Perfect for CI one-liners
-- Shares Kalix's artifact cache
+- Shares Kalyx's artifact cache
 
 ### Complete Example
 
 ```yaml
 tools:
-  # Java tools (managed by Kalix)
+  # Java tools (managed by Kalyx)
   ktlint:
     uses: com.pinterest.ktlint:ktlint-cli:1.2.0
     plugin: java-exec
@@ -578,11 +578,11 @@ tools:
     uses: com.puppycrawl.tools:checkstyle:10.12.0
     plugin: java-exec
 
-  # Python tool (managed by you, executed by Kalix)
+  # Python tool (managed by you, executed by Kalyx)
   reuse:
     run: uv run --frozen reuse
 
-  # Node tool (managed by Kalix via node plugin)
+  # Node tool (managed by Kalyx via node plugin)
   prettier:
     plugin: node
     setup: corepack enable
@@ -606,8 +606,8 @@ scripts:
 
 In this example:
 
-- `ktlint`, `checkstyle` - Downloaded by Kalix, executed via `java -jar`
-- `prettier` - Node ecosystem managed by Kalix (yarn/corepack)
+- `ktlint`, `checkstyle` - Downloaded by Kalyx, executed via `java -jar`
+- `prettier` - Node ecosystem managed by Kalyx (yarn/corepack)
 - `reuse` - Installed by you via `uv tool install reuse`, executed as-is
 - `git` - System tool, executed directly
 
@@ -615,13 +615,13 @@ In this example:
 
 Gradle and Maven make simple things hard:
 
-| Task                       | Maven                                                | Gradle                                         | Kalix                                                                           |
+| Task                       | Maven                                                | Gradle                                         | Kalyx                                                                           |
 | -------------------------- | ---------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------- |
 | Run checkstyle on one file | Create POM, configure plugin, `mvn checkstyle:check` | Add plugin, configure, `gradle checkstyleMain` | `klx tool com.puppycrawl.tools:checkstyle:10.12.0 MyFile.java`                  |
 | Git hook for linting       | Plugin configuration nightmare                       | Custom task + plugin                           | `klx tool com.pinterest.ktlint:ktlint-cli:1.2.0 --git-pre-commit-hook`          |
 | One-off formatting         | `mvn formatter:format`                               | `gradle spotlessApply`                         | `klx tool com.google.googlejavaformat:google-java-format:1.22.0 -i MyFile.java` |
 
-**Kalix philosophy:** Simple things should be one command. Config is for complex workflows, not for running a tool.
+**Kalyx philosophy:** Simple things should be one command. Config is for complex workflows, not for running a tool.
 
 ## Command Resolution
 
@@ -629,7 +629,7 @@ Scripts provide custom commands. They **cannot** shadow built-in commands.
 
 ### Reserved Commands
 
-These command names are reserved by Kalix core and **cannot** be used as script or tool names:
+These command names are reserved by Kalyx core and **cannot** be used as script or tool names:
 
 | Category              | Commands                                               |
 | --------------------- | ------------------------------------------------------ |
@@ -709,7 +709,7 @@ klx build api service
 
 ### The ./klx Wrapper
 
-Kalix provides a wrapper script `./klx` (like `./gradlew` but better):
+Kalyx provides a wrapper script `./klx` (like `./gradlew` but better):
 
 ```bash
 # Clone and go - no installation needed
@@ -720,8 +720,8 @@ cd project
 
 **Wrapper behavior:**
 
-1. Check `kalix/wrapper/kalix-wrapper.properties` for version
-2. Download if not cached in `~/.kalix/wrapper/<version>/`
+1. Check `kalyx/wrapper/kalyx-wrapper.properties` for version
+2. Download if not cached in `~/.kalyx/wrapper/<version>/`
 3. Verify checksum
 4. Delegate to downloaded binary
 
@@ -746,14 +746,14 @@ klx --version  # 1.5.0 (delegated to wrapper)
 
 ### jbang Support
 
-Kalix works with jbang for zero-install usage:
+Kalyx works with jbang for zero-install usage:
 
 ```bash
 # Run without installing
-jbang klx@kalix build
+jbang klx@kalyx build
 
 # Or install via jbang
-jbang app install klx@kalix
+jbang app install klx@kalyx
 klx build  # Now available in PATH
 ```
 
@@ -763,15 +763,15 @@ klx build  # Now available in PATH
 #!/bin/sh
 # .git/hooks/pre-commit
 # Works even if klx not installed!
-jbang klx@kalix tool com.pinterest.ktlint:ktlint-cli:1.2.0 --git-pre-commit-hook
+jbang klx@kalyx tool com.pinterest.ktlint:ktlint-cli:1.2.0 --git-pre-commit-hook
 ```
 
 ### Wrapper Script Locations
 
 | Platform   | Wrapper         | Cache                           |
 | ---------- | --------------- | ------------------------------- |
-| Unix/macOS | `./klx` (shell) | `~/.kalix/wrapper/`             |
-| Windows    | `./klx.bat`     | `%USERPROFILE%\.kalix\wrapper\` |
+| Unix/macOS | `./klx` (shell) | `~/.kalyx/wrapper/`             |
+| Windows    | `./klx.bat`     | `%USERPROFILE%\.kalyx\wrapper\` |
 | Universal  | `./klx` (jbang) | jbang cache                     |
 
 ### Comparison
@@ -782,7 +782,7 @@ jbang klx@kalix tool com.pinterest.ktlint:ktlint-cli:1.2.0 --git-pre-commit-hook
 | Maven     | `./mvnw`           | ❌ No            | ❌            | ✅           |
 | Gradle    | `./gradlew`        | ❌ No            | ❌            | ✅           |
 | Yarn      | `.yarn/releases/*` | ✅ Yes           | ❌            | ✅           |
-| **Kalix** | `./klx`            | ✅ Yes           | ✅ Yes        | ✅           |
+| **Kalyx** | `./klx`            | ✅ Yes           | ✅ Yes        | ✅           |
 
 ## Open Questions
 

@@ -379,6 +379,14 @@ Problems:
 
 Kalix uses Maven 4's polyglot YAML syntax (`pom.yml`) for compatibility, with Gradle's correct classpath modeling internally.
 
+> **🚧 Design TBD:** Exact scope/role naming is still being determined. Options:
+>
+> - Maven terms (`@compile`, `@provided`, `@runtime`) - familiar but misleading
+> - Gradle terms (`@implementation`, `@api`, `@compileOnly`) - accurate but verbose
+> - JPMS-inspired (`@requires`, `@requires static`, `@uses`) - theoretically pure
+>
+> Decision deferred to elaboration phase after multi-module builds reveal real needs.
+
 #### Standard Maven Scopes (Maven 4 pom.yml Compatible)
 
 ```yaml
@@ -500,6 +508,79 @@ dependencies:
 ```
 
 Does this actually work better? We'll see. This is marked as experimental.
+
+### BOM/Platform Support
+
+Kalix supports Maven BOM (Bill of Materials) and Gradle Platform concepts for dependency version management:
+
+#### Importing a BOM
+
+```yaml
+# Maven-style BOM import
+dependencies:
+  - org.springframework.boot:spring-boot-dependencies:3.2.0@import
+```
+
+BOM dependencies:
+
+- Provide version numbers for transitive dependencies
+- Not included in classpath themselves
+- Versions can be overridden explicitly
+
+#### Platform Dependencies (Gradle-style)
+
+```yaml
+# Gradle-style platform
+dependencies:
+  compile:
+    - platform: org.springframework.boot:spring-boot-dependencies:3.2.0
+```
+
+#### Local BOM Definition
+
+Define your own BOM for internal shared versions:
+
+```yaml
+# my-company-bom/kalix.yaml
+project:
+  name: my-company-bom
+  version: 1.0.0
+  type: bom # Mark as BOM, not library
+
+dependencies:
+  compile:
+    # Versions only, no artifacts
+    - org.springframework.boot:spring-boot-starter:3.2.0
+    - org.postgresql:postgresql:42.7.0
+    - org.slf4j:slf4j-api:2.0.0
+```
+
+Used by other projects:
+
+```yaml
+# service/kalix.yaml
+dependencies:
+  - com.mycompany:my-company-bom:1.0.0@import
+
+  compile:
+    # Version inherited from BOM
+    - org.springframework.boot:spring-boot-starter
+    - org.postgresql:postgresql
+```
+
+#### Version Overrides
+
+```yaml
+dependencies:
+  - org.springframework.boot:spring-boot-dependencies:3.2.0@import
+
+  compile:
+    # Use BOM version
+    - org.springframework.boot:spring-boot-starter
+
+    # Override specific version from BOM
+    - org.postgresql:postgresql:43.0.0
+```
 
 ### Capability Declarations
 

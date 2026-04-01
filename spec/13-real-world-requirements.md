@@ -375,14 +375,15 @@ Problems:
 - **No simple "optional"** - Everything must be a "feature variant"
 - **Complex debugging** - Which feature variant created which configuration?
 
-### Kalix Approach: Maven Compatibility + Gradle Thoroughness
+### Kalix Approach: Maven 4 Polyglot + Gradle Thoroughness
 
-Kalix bridges Maven's **copy-paste simplicity** with Gradle's **correct classpath modeling**.
+Kalix uses Maven 4's polyglot YAML syntax (`pom.yml`) for compatibility, with Gradle's correct classpath modeling internally.
 
-#### Standard Maven Scopes (Copy-Paste Compatible)
+#### Standard Maven Scopes (Maven 4 pom.yml Compatible)
 
 ```yaml
-# Direct mapping from pom.xml <scope> to @role
+# Maven 4 polyglot YAML syntax (pom.yml)
+# group:artifact:version@scope shorthand
 dependencies:
   - org.slf4j:slf4j-api:2.0.0@compile
   - javax.servlet:servlet-api:2.5@provided
@@ -390,6 +391,8 @@ dependencies:
   - org.junit:junit:5.11.0@test
   - org.springframework.boot:spring-boot-dependencies:3.2.0@import
 ```
+
+**Note:** This is actual Maven 4 polyglot YAML syntax. A valid `pom.yml` from Maven 4 should work in Kalix with minimal changes.
 
 **How Maven scopes map to Kalix:**
 

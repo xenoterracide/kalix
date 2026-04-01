@@ -64,7 +64,7 @@ Built for how we work in 2026.
 # .config/kalyx/10-company.yaml - shared via git submodule
 project:
   group: com.mycompany
-  
+
 repositories:
   - https://nexus.mycompany.com/
 ```
@@ -86,6 +86,7 @@ klx tool com.pinterest.ktlint:ktlint-cli:1.2.0 --git-pre-commit-hook
 ```
 
 **Why it's better:**
+
 - `klx` uses **Project Leyden** for fast startup (AOT-optimized JVM, not native binary)
 - **Lazy loading** - only load plugins/classes needed for the current command
 - No wrapper scripts (`./gradlew` vs `gradlew.bat` vs `mvnw`)
@@ -97,6 +98,7 @@ klx tool com.pinterest.ktlint:ktlint-cli:1.2.0 --git-pre-commit-hook
 `npm ci` deletes `node_modules` and reinstalls everything. This is slow and wasteful.
 
 Kalyx:
+
 - Lock file guarantees reproducibility
 - Cache is never invalidated unless dependencies actually change
 - Incremental downloads (only changed artifacts)
@@ -124,6 +126,7 @@ jlink --module-path kalyx.jar:$JAVA_HOME/jmods \
 ```
 
 Result:
+
 - Smaller distribution (~50MB vs ~200MB full JDK)
 - Faster startup (fewer modules to initialize)
 - Still a real JVM with full capabilities
@@ -158,7 +161,7 @@ plugins { id 'plugin-b' version '2.0' }                   // Uses guava 30
 ```yaml
 # Kalyx - isolated modules
 plugins:
-  - io.kalyx.java:2.0.0      # module io.kalyx.java, uses guava 28 internally
+  - io.kalyx.java:2.0.0 # module io.kalyx.java, uses guava 28 internally
   - io.kalyx.checkstyle:2.0.0 # module io.kalyx.checkstyle, uses guava 30 internally
 # No conflict - each plugin has its own module layer
 ```
@@ -167,12 +170,12 @@ plugins:
 
 Kalyx plugins may be required to be JPMS-compatible:
 
-| Requirement | Meaning |
-|-------------|---------|
-| All plugins are JPMS modules | `module-info.java` required |
-| Strong encapsulation | Internal packages truly hidden |
-| Explicit dependencies | No accidental transitive deps |
-| Module layers per plugin | True isolation between plugins |
+| Requirement                  | Meaning                        |
+| ---------------------------- | ------------------------------ |
+| All plugins are JPMS modules | `module-info.java` required    |
+| Strong encapsulation         | Internal packages truly hidden |
+| Explicit dependencies        | No accidental transitive deps  |
+| Module layers per plugin     | True isolation between plugins |
 
 This prevents the "plugin pulled in Guava 28 breaking my Guava 30" nightmare that plagues Gradle.
 

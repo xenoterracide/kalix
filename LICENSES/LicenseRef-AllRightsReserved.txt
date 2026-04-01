@@ -1,7 +1,5 @@
 All Rights Reserved
 
-Copyright © 2024-2026 Caleb Cushing
-
 This software is provided for reference and evaluation purposes only.
 No permission is granted to use, copy, modify, merge, publish, distribute,
 sublicense, or sell copies of this software without explicit written

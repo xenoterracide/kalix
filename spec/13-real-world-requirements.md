@@ -315,9 +315,9 @@ No manual `dependsOn` needed for standard cases.
 | Checkstyle per source set | ❌ No            | ✅ Yes               | ✅ Native support      |
 | Multiple test suites      | ❌ profiles hack | ⚠️ Source sets       | ✅ First-class         |
 | Test fixtures             | ❌ No            | ✅ Yes (plugin)      | ✅ Native              |
-| Optional/dev dependencies | ✅ `optional`    | ⚠️ `feature`         | ✅ Unified approach    |
+| Optional/dev dependencies | ✅ `optional`    | ⚠️ `feature`         | ✅ See below           |
 
-## 6. Optional Dependencies and Capabilities
+## 6. Optional Dependencies and Development Scope
 
 **The Problem:** Spring Boot DevTools should only be on classpath during development, not in production. This requires:
 
@@ -375,204 +375,21 @@ Problems:
 - **No simple "optional"** - Everything must be a "feature variant"
 - **Complex debugging** - Which feature variant created which configuration?
 
-### Kalix Approach: Maven 4 Polyglot + Gradle Thoroughness
+### Kalix Approach
 
-Kalix uses Maven 4's polyglot YAML syntax (`pom.yml`) for compatibility, with Gradle's correct classpath modeling internally.
+See [14-dependencies-and-scopes.md](14-dependencies-and-scopes.md) for full dependency scope design.
 
-> **🚧 Design TBD:** Exact scope/role naming is still being determined. Options:
->
-> - Maven terms (`@compile`, `@provided`, `@runtime`) - familiar but misleading
-> - Gradle terms (`@implementation`, `@api`, `@compileOnly`) - accurate but verbose
-> - JPMS-inspired (`@requires`, `@requires static`, `@uses`) - theoretically pure
->
-> Decision deferred to elaboration phase after multi-module builds reveal real needs.
+Key features:
 
-#### Standard Maven Scopes (Maven 4 pom.yml Compatible)
-
-```yaml
-# Maven 4 polyglot YAML syntax (pom.yml)
-# group:artifact:version@scope shorthand
-dependencies:
-  - org.slf4j:slf4j-api:2.0.0@compile
-  - javax.servlet:servlet-api:2.5@provided
-  - org.postgresql:postgresql:42.7.0@runtime
-  - org.junit:junit:5.11.0@test
-  - org.springframework.boot:spring-boot-dependencies:3.2.0@bom
-```
-
-**Note:** This is actual Maven 4 polyglot YAML syntax. A valid `pom.yml` from Maven 4 should work in Kalix with minimal changes.
-
-**How Maven scopes map to Kalix:**
-
-| Maven Scope         | Kalix Role | Available At           | Transitive |
-| ------------------- | ---------- | ---------------------- | ---------- |
-| `compile` (default) | `compile`  | compile + runtime      | Yes        |
-| `provided`          | `provided` | compile only           | No         |
-| `runtime`           | `runtime`  | runtime only           | Yes        |
-| `test`              | `test`     | test compile + runtime | No         |
-| `import`            | `import`   | BOM management         | N/A        |
-
-**Gradle-style configurations** (derived from role):
-
-- `compileClasspath` = `compile` + `provided`
-- `runtimeClasspath` = `compile` + `runtime`
-- `testCompileClasspath` = `compile` + `provided` + `test`
-- `testRuntimeClasspath` = `compile` + `runtime` + `test`
-
-#### Extended Roles for Modern Workflows
-
-Beyond Maven's basic scopes, Kalix adds:
+- Maven 4 polyglot YAML syntax (`pom.yml`) compatible
+- Gradle-style correct classpath modeling
+- First-class `@development` scope for DevTools
+- BOM support with `@bom` syntax
 
 ```yaml
 dependencies:
-  # Development-only (not in production)
-  # Similar to Gradle's developmentOnly
+  # DevTools - development scope, not in production
   - org.springframework.boot:spring-boot-devtools:3.2.0@development
-
-  # Optional dependency
-  # Consumers don't get this unless they explicitly depend on it
-  - com.example:optional-feature:1.0.0@compileOptional
-
-  # Annotation processors
-  - org.immutables:value:2.10.0@annotationProcessor
-```
-
-| Extended Role         | Available At      | Transitive | Use Case                   |
-| --------------------- | ----------------- | ---------- | -------------------------- |
-| `development`         | local run + test  | No         | DevTools, debugging agents |
-| `compileOptional`     | compile + runtime | Optional   | Optional features          |
-| `annotationProcessor` | compile only (AP) | No         | Code generation            |
-
-#### Composite Role Syntax
-
-Combine role + optional flag:
-
-```yaml
-# compile + optional = compileOptional
-dependencies:
-  - com.example:lib:1.0.0@compile+optional
-  # Same as:
-  - com.example:lib:1.0.0@compileOptional
-```
-
-#### Map-Based (Verbose) Alternative
-
-For complex exclusions or when readability matters:
-
-```yaml
-dependencies:
-  compile:
-    - org.springframework.boot:spring-boot-starter-web:3.2.0:
-        exclude:
-          - org.springframework.boot:spring-boot-starter-logging
-
-  provided:
-    - javax.servlet:javax.servlet-api:4.0.1
-
-  test:
-    - org.junit.jupiter:junit-jupiter:5.11.0
-```
-
-#### The Design Tension
-
-**Maven's model** is simple (5 scopes) but misses important distinctions:
-
-- Can't express "test-only runtime dependency"
-- No first-class annotation processor scope
-- No development-only concept
-
-**Gradle's model** is thorough (compileClasspath, runtimeClasspath, testCompileClasspath, etc.) but complex:
-
-- Configurations are implementation details leaking out
-- Feature variants create implicit configurations
-- Hard to know which configuration to use
-
-**Kalix approach:**
-
-- **Simple case:** Maven scopes (`@compile`, `@test`, etc.) - copy from any pom.xml
-- **Complex case:** Explicit classpath configuration when needed
-- **Role expansion:** Roles expand to correct Gradle-style configurations internally
-
-**Example expansion:**
-
-```yaml
-# User writes (simple):
-dependencies:
-  - org.postgresql:postgresql:42.7.0@runtime
-
-# Kalix expands to (thorough):
-# - NOT available at compile time
-# - Available at runtime
-# - Transitive to consumers
-# - Part of runtimeClasspath, testRuntimeClasspath
-```
-
-Does this actually work better? We'll see. This is marked as experimental.
-
-### BOM/Platform Support
-
-Kalix supports Maven BOM (Bill of Materials) and Gradle Platform concepts for dependency version management:
-
-#### Importing a BOM
-
-```yaml
-# Import a BOM to manage versions
-dependencies:
-  - org.springframework.boot:spring-boot-dependencies:3.2.0@bom
-```
-
-**Why `@bom`?** Because everyone calls it a BOM. Maven uses `@import` for historical reasons, Gradle uses `platform`, but "BOM" is the universal term.
-
-BOM dependencies:
-
-- Provide version numbers for transitive dependencies
-- Not included in classpath themselves
-- Versions can be overridden explicitly
-
-#### Local BOM Definition
-
-Define your own BOM for internal shared versions:
-
-```yaml
-# my-company-bom/kalix.yaml
-project:
-  name: my-company-bom
-  version: 1.0.0
-  type: bom # Mark as BOM, not library
-
-dependencies:
-  compile:
-    # Versions managed by this BOM
-    - org.postgresql:postgresql:42.7.0
-    - org.slf4j:slf4j-api:2.0.0
-    - com.fasterxml.jackson.core:jackson-databind:2.15.0
-```
-
-Used by other projects:
-
-```yaml
-# service/kalix.yaml
-dependencies:
-  - com.mycompany:my-company-bom:1.0.0@bom
-
-  compile:
-    # Version inherited from BOM
-    - org.postgresql:postgresql
-    - org.slf4j:slf4j-api
-```
-
-#### Version Overrides
-
-```yaml
-dependencies:
-  - org.springframework.boot:spring-boot-dependencies:3.2.0@bom
-
-  compile:
-    # Use BOM version
-    - org.springframework.boot:spring-boot-starter
-
-    # Override specific version from BOM
-    - org.postgresql:postgresql:43.0.0
 ```
 
 ### Capability Declarations

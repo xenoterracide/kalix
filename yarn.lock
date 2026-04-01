@@ -338,9 +338,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"kalix@workspace:.":
+"kalyx@workspace:.":
   version: 0.0.0-use.local
-  resolution: "kalix@workspace:."
+  resolution: "kalyx@workspace:."
   dependencies:
     "@prettier/plugin-xml": "npm:^3.4.2"
     git-conventional-commits: "npm:^2.8.0"

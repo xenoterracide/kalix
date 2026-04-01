@@ -1,0 +1,518 @@
+// SPDX-FileCopyrightText: Copyright © 2024-2026 Caleb Cushing
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+= Kalyx Roadmap
+
+This document defines the phases of Kalyx development following RUP-inspired phases (per Craig Larman's *UML and Patterns*).
+
+== Phase Overview
+
+Inception::
+  Establish vision, scope, and feasibility.
+  Core requirements documented.
+  Key architectural decisions made.
+  Duration: 1-2 weeks
+
+Elaboration::
+  Implement core architecture.
+  Resolve highest risks.
+  Build vertical slice (end-to-end workflow).
+  Duration: 3-4 weeks
+
+Construction::
+  Bulk of development.
+  Features to Demo, then MVP.
+  Multiple iterations.
+  Duration: 8-12 weeks
+
+Transition::
+  Polish, documentation, migration guides.
+  Release preparation.
+  Community onboarding.
+  Duration: 2-3 weeks
+
+== Inception Phase (Current)
+
+**Goal:** Vision clear, requirements documented, assumptions identified, feasibility assessed.
+
+**Status:** 🚧 Requirements done, risks partially identified
+
+| Deliverable | Status | Notes |
+|-------------|--------|-------|
+| Vision document | ✅ | spec/01-vision.md |
+| Use cases (8) | ✅ | docs/use-cases/ |
+| Architecture overview | ✅ | spec/10-plugin-architecture.md |
+| **Assumptions identified** | 🚧 | This section |
+| **Elaboration scope defined** | 🚧 | Vertical slice criteria |
+| Feasibility spikes | ⬜ | Not started |
+
+**Critical Assumptions (could kill the project if wrong):**
+
+| # | Assumption | Impact if Wrong | Validation |
+|---|------------|-----------------|------------|
+| A1 | Gradle's resolution algorithm can be studied and reimplemented | Implement from scratch (weeks of work) | Study Gradle source, document algorithm, implement "newest wins" logic |
+| A2 | JPMS encapsulation + our conflict detection gives better errors | Silent runtime errors, same as Gradle | Spike: Load plugins with internal deps, verify encapsulation works; detect version conflicts early |
+| A3 | Content-addressable caching enables fast incremental builds | Builds slower than Gradle, adoption fails | Spike: Benchmark file hashing vs Gradle's approach |
+| A4 | Sub-5-second cold start is achievable | Core differentiator lost | Spike: Measure startup with minimal config parsing |
+| A5 | Project Leyden will eventually ship | Long-term performance strategy invalid | Monitor Leyden EA releases |
+
+**Hard Parts (require validation in Elaboration):**
+
+1. **Dependency Resolution Algorithm**
+   - Implement Gradle-style "newest wins" resolution
+   - Study Gradle's algorithm from their source
+   - Handle version conflicts, exclusions, BOM imports
+   - Generate lock files for reproducibility
+
+2. **Correct Incremental Builds**
+   - Detecting when annotation processors change outputs
+   - Handling non-file inputs (environment variables, system properties)
+   - Parallel task execution with proper input/output isolation
+   - *Question:* Is timestamp + SHA-256 sufficient? Do we need file system watching?
+
+3. **Plugin Isolation Model**
+   - JPMS provides strong encapsulation (plugins can't poke each other's internals)
+   - JPMS does NOT prevent version conflicts (two plugins using different Guava versions)
+   - Loud failure: Detect conflicts early, fail with clear message at startup
+   - Future option: "Bundled" common libraries (Guava, etc.) that plugins can rely on
+   - Or: Tell users to shade conflicting dependencies (Gradle's stance)
+   - *Question:* Can we detect version conflicts and report them clearly?
+
+4. **Maven Interop**
+   - POM generation that Maven Central accepts
+   - Handling Maven-specific metadata (parent POMs, profiles)
+   - *Question:* Can we generate valid POMs from YAML without lossy conversion?
+
+**Elaboration Scope (Vertical Slice Definition):**
+
+Prove the core loop works end-to-end with a **single Java file project**:
+
+```
+kflix-demo/
+├── kalyx.yaml          # One dependency: JUnit
+└── src/
+    ├── main/java/App.java      # Single class with main()
+    └── test/java/AppTest.java  # Single JUnit test
+```
+
+**Vertical Slice Acceptance Criteria:**
+
+1. `klx fetch` downloads JUnit from Maven Central
+2. `klx build` compiles `App.java` → `App.class`
+3. `klx test` runs `AppTest`, reports pass/fail
+4. `klx jar` produces `build/libs/demo.jar`
+5. Second `klx build` says "UP-TO-DATE" and skips compilation
+6. Touch `App.java`, `klx build` recompiles only that file
+7. Total time for #2 < 10 seconds (cold), < 2 seconds (warm)
+
+**Technical Decisions to Make in Elaboration:**
+
+| Decision | Options | Criteria |
+|----------|---------|----------|
+| Dependency Resolver | Study Gradle's approach, implement similar "newest wins" logic | DWIM behavior, clear conflict reporting |
+| Plugin Loading | Module layers with loud failure | Clear error messages when conflicts occur |
+| Incremental Tracking | SHA-256 + timestamps | Fast enough (<100ms for 1000 files), correct |
+| Config Model | YAML → Immutable Java objects | Type-safe, IDE-friendly |
+
+**Decision:** Gradle-style resolution (newest wins) over Maven (nearest definition). Better DWIM behavior, more predictable.
+
+*Note:* Gradle is Apache 2.0, compatible with Kalyx's GPL-3.0. We could theoretically use their resolver directly, but it's tightly coupled to Gradle internals. Reimplementing the algorithm is cleaner.
+
+**Explicitly OUT of vertical slice:**
+- Multi-module projects
+- Annotation processors
+- Test fixtures
+- Lock files (use floating versions)
+- POM generation
+- Security verification
+- Scripts/tools
+- Git hooks
+- Wrapper
+
+**Inception Exit Criteria:**
+- [ ] Stakeholders aligned on vision ✅
+- [x] All assumptions documented (A1-A6)
+- [x] Elaboration scope defined (vertical slice criteria)
+- [ ] Feasibility spikes complete (A1-A3 minimum)
+- [ ] Go/No-go decision for elaboration
+
+== Elaboration Phase
+
+**Goal:** Core architecture working, vertical slice functional.
+
+**Duration:** 3 weeks (1.5 iterations × 2 weeks)
+
+**Core Architecture Elements:**
+
+| Component | Description | Risk Level |
+|-----------|-------------|------------|
+| Configuration parser | YAML → internal model | Low |
+| Dependency resolver | Maven repository protocol | High |
+| Artifact cache | Local storage, content-addressed | Medium |
+| Lock file manager | Immutable, verifiable | Low |
+| Task engine | Dependency graph, incremental | High |
+| Plugin loader | Module isolation (JPMS) | Medium |
+
+**Vertical Slice (End-to-End):**
+
+Demonstrate:
+1. `kalyx.yaml` with one dependency
+2. `klx fetch` downloads it
+3. `klx build` compiles single Java file
+4. `klx test` runs single JUnit test
+5. `klx jar` produces JAR
+
+No multi-module, no incremental (rebuild everything), no fancy features.
+Just prove the core loop works.
+
+**Elaboration Exit Criteria:**
+- [ ] Vertical slice works
+- [ ] Architecture proven (no major unknowns)
+- [ ] Performance baseline established
+- [ ] Team ready for construction velocity
+
+== Construction Phase
+
+**Goal:** Demo, then MVP.
+
+**Duration:** 6 weeks (3 iterations × 2 weeks)
+
+| Iteration | Duration | Focus |
+|-----------|----------|-------|
+| C1 | Weeks 1-2 | Demo Core - Single module, basic incremental, wrapper, `klx add`, lock files |
+| C2 | Weeks 3-4 | Demo Polish - Scripts, test execution, JAR packaging, ~10 demo projects |
+| C3 | Weeks 5-6 | MVP Core - Multi-module, annotation processors, test fixtures, `pom.xml` generation |
+| C4 | Weeks 7-8 | MVP Dependencies - BOM imports, Maven migration, layered config |
+| C5 | Weeks 9-10 | MVP Security - PGP verification, reproducible builds, credential suppliers |
+| C6 | Weeks 11-12 | MVP Polish - Error messages, documentation, CI/CD examples, performance |
+
+**Construction Exit Criteria:**
+- [ ] spring-app-commons builds with Kalyx
+- [ ] Documentation complete
+- [ ] Migration path from Maven documented
+- [ ] No critical bugs
+- [ ] 10+ external users providing feedback
+
+== Transition Phase
+
+**Goal:** Release preparation.
+
+**Duration:** 2 weeks (1 iteration × 2 weeks)
+
+| Activity | Description |
+|----------|-------------|
+| Beta program | Early adopters try MVP |
+| Documentation review | Complete, accurate docs |
+| Migration guides | Maven → Kalyx, Gradle → Kalyx |
+| Release notes | What's new, breaking changes |
+| Marketing | Blog posts, presentations |
+| Community setup | Discord/forum, issue templates |
+
+**Transition Exit Criteria:**
+- [ ] v1.0.0 tagged
+- [ ] Published to GitHub releases
+- [ ] Available via jbang
+- [ ] Homebrew/formula (optional)
+
+== Demo vs MVP vs Beyond (Feature Matrix)
+
+[cols="4,1,1,1"]
+|===
+| Feature | Demo | MVP | Beyond
+
+| **Core Build**
+| 
+| 
+| 
+
+| Compile Java sources
+| ✅
+| ✅
+| 
+
+| Run tests (JUnit)
+| ✅
+| ✅
+| 
+
+| Package JAR
+| ✅
+| ✅
+| 
+
+| Incremental builds
+| Basic
+| ✅
+| 
+
+| Multi-module projects
+| 
+| ✅
+| 
+
+| Annotation processors
+| 
+| ✅
+| 
+
+| Kotlin compilation
+| 
+| 
+| ✅
+
+| **Dependency Management**
+| 
+| 
+| 
+
+| Maven repository support
+| ✅
+| ✅
+| 
+
+| Lock files (mandatory)
+| ✅
+| ✅
+| 
+
+| `klx add` command
+| ✅
+| ✅
+| 
+
+| BOM imports
+| 
+| ✅
+| 
+
+| Gradle metadata support
+| 
+| 
+| ✅
+
+| **CLI & Workflow**
+| 
+| 
+| 
+
+| `./klx` wrapper
+| ✅
+| ✅
+| 
+
+| Global → wrapper delegation
+| 
+| ✅
+| 
+
+| jbang support
+| 
+| ✅
+| 
+
+| `klx fetch`
+| ✅
+| ✅
+| 
+
+| Scripts
+| ✅
+| ✅
+| 
+
+| Git hook integration
+| 
+| ✅
+| 
+
+| IDE plugins
+| 
+| 
+| ✅
+
+| **Configuration**
+| 
+| 
+| 
+
+| YAML configuration
+| ✅
+| ✅
+| 
+
+| Layered config
+| Basic
+| ✅
+| 
+
+| JSON Schema for IDE
+| 
+| ✅
+| 
+
+| **Security & Trust**
+| 
+| 
+| 
+
+| SHA-256 verification
+| ✅
+| ✅
+| 
+
+| PGP signature verification
+| 
+| ✅
+| 
+
+| Reproducible builds
+| 
+| ✅
+| 
+
+| DNS-based publishing verification
+| 
+| 
+| ✅
+
+| **Migration & Interop**
+| 
+| 
+| 
+
+| `pom.xml` generation
+| 
+| ✅
+| 
+
+| Read `pom.xml` (migration)
+| 
+| ✅
+| 
+
+| Gradle migration guide
+| 
+| ✅
+| 
+
+| `klx migrate from-gradle`
+| 
+| 
+| ✅
+
+| **Publishing**
+| 
+| 
+| 
+
+| Maven Central publishing
+| 
+| ✅
+| 
+
+| Container image build
+| 
+| 
+| ✅
+
+| **Performance**
+| 
+| 
+| 
+
+| Local build cache
+| Basic
+| ✅
+| 
+
+| Remote build cache
+| 
+| 
+| ✅
+
+| Project Leyden optimization
+| 
+| 
+| ✅
+
+|===
+
+== 5-Minute Demo Script
+
+Target: Show the vision, get people excited.
+
+[source,bash]
+----
+# Setup (before demo)
+# - Fresh VM/container
+# - No Java build tools installed
+# - Network available
+
+# 1. Clone and go (30 seconds)
+$ git clone https://github.com/example/demo-project.git
+cd demo-project
+$ ./klx build
+> Downloading klx 1.0.0...
+> Resolving dependencies...
+> Compiling...
+> Tests: 5 passed
+> BUILD SUCCESSFUL
+
+# 2. Show it's fast now (5 seconds)
+$ ./klx build
+> :compileJava UP-TO-DATE
+> :test UP-TO-DATE
+> BUILD SUCCESSFUL (0.8s)
+
+# 3. Make change, show incremental (10 seconds)
+$ echo "// comment" >> src/main/java/App.java
+$ ./klx build
+> :compileJava (1 file)
+> :test UP-TO-DATE
+> BUILD SUCCESSFUL (1.2s)
+
+# 4. Add dependency (15 seconds)
+$ ./klx add org.slf4j:slf4j-api:2.0.9
+> Added to kalyx.yaml
+> Updated kalyx.lock
+> Downloaded slf4j-api-2.0.9.jar
+
+# 5. Work offline (20 seconds)
+$ ./klx fetch --all
+> 47 artifacts cached
+$ disconnect-network
+$ ./klx build
+> BUILD SUCCESSFUL (offline)
+
+# 6. Compare to Gradle (painful, skip in demo)
+# Just mention: "This is what used to take 30 seconds with Gradle"
+----
+
+== Success Metrics
+
+Inception::
+* All stakeholders aligned ✅
+* Requirements documented ✅
+* Key risks identified 🚧
+
+Elaboration::
+* Vertical slice works
+* Architecture proven
+* Performance baseline < 5s cold start
+
+Demo::
+* Can build demo project in < 30 seconds (fresh clone)
+* Incremental build < 2 seconds
+* Audience understands the vision
+
+MVP::
+* spring-app-commons builds
+* Zero critical bugs
+* Documentation complete
+* 10+ external users
+
+Beyond::
+* Production at enterprise scale
+* Multiple language ecosystems
+* Ecosystem of plugins

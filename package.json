@@ -1,8 +1,8 @@
 {
-  "name": "kalix",
+  "name": "kalyx",
   "packageManager": "yarn@4.13.0",
   "private": true,
-  "license": "GPL-3.0-or-later",
+  "license": "LicenseRef-AllRightsReserved",
   "devDependencies": {
     "@prettier/plugin-xml": "^3.4.2",
     "git-conventional-commits": "^2.8.0",

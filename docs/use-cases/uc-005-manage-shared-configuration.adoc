@@ -1,0 +1,227 @@
+// SPDX-FileCopyrightText: Copyright © 2024-2026 Caleb Cushing
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+= UC-005: Manage Shared Configuration
+
+== Metadata
+
+[cols="1,3"]
+|===
+| Primary Actor | <<Team Lead>> or <<Build Engineer>>
+| Scope | Kalyx Build System - Configuration Management
+| Level | User Goal
+| Trigger | Need to share build standards across projects/team
+|===
+
+== Stakeholders and Interests
+
+*<<Team Lead>>*::
+  Wants consistent build standards across all team projects.
+  Needs to update standards without touching every project.
+  Must allow projects to override when necessary.
+  Wants version control of shared standards.
+
+*<<Developer>>*::
+  Wants sensible defaults out of the box.
+  Needs to see where configuration comes from.
+  Must be able to override for project-specific needs.
+
+*<<Organization>>*::
+  Needs compliance with security and legal standards.
+  Wants to enforce approved repositories and dependencies.
+  Must audit configuration changes.
+
+== Preconditions
+
+* Git repositories for shared configuration
+* Projects using Kalyx build system
+* Access to git submodules, subtree, or copy mechanism
+
+== Postconditions
+
+=== Success Guarantee
+
+* Shared configuration applied consistently
+* Layered configs merge correctly
+* Projects can override specific values
+* Updates propagate via standard git mechanisms
+
+=== Minimal Guarantee
+
+* Clear error if configuration conflicts cannot be resolved
+* Visibility into which config layer provides each value
+
+== Main Success Scenario
+
+. [[step-create,Organization creates shared configuration]] *Organization creates shared configuration* +
+  _Create git repository `company/kalyx-standards`,
+  Define company-wide defaults in `.config/kalyx/01-company.yaml`_
+
+. [[step-distribute,Team distributes configuration to projects]] *Team distributes configuration to projects* +
+  _Options:
+  Git submodule: `git submodule add company/kalyx-standards .config/kalyx/01-company`
+  Git subtree: `git subtree add --prefix=.config/kalyx/01-company ...`
+  Copy: Manual copy for simple cases_
+
+. [[step-apply,Project applies layered configuration]] *Project applies layered configuration* +
+  _Project has `.config/kalyx/` directory:
+```
+.config/kalyx/
+├── 01-company/           # From submodule (company standards)
+│   └── defaults.yaml
+├── 10-security/          # Security team requirements
+│   └── scanning.yaml
+└── 99-project.yaml       # Project-specific overrides
+```_
+
+. [[step-merge,System merges configuration layers]] *System merges configuration layers* +
+  _Kalyx loads files in sorted order,
+  Deep merge for objects,
+  Append for arrays,
+  Later files override earlier ones_
+
+. [[step-developer,Developer works with merged config]] *Developer works with merged config* +
+  _Developer runs `klx config show` to see effective configuration,
+  System displays merged result with source annotations:
+```yaml
+project:
+  group: com.mycompany          # from 01-company/defaults.yaml
+repositories:
+  - https://nexus.mycompany.com # from 01-company/defaults.yaml
+  - https://repo1.maven.org/... # from 99-project.yaml (added)
+```_
+
+. [[step-update,Organization updates shared standards]] *Organization updates shared standards* +
+  _Update in `company/kalyx-standards`,
+  Tag release,
+  Projects pull update via `git submodule update` or `git subtree pull`_
+
+== Extensions (Alternative Flows)
+
+=== During <<step-merge>>: Conflict Detected
+
+*Condition:* Same key defined differently in multiple layers with incompatible types
+
+*Steps:*
+. System reports: "Configuration conflict: `java.toolchain`"
+. Shows:
+** 01-company/defaults.yaml: `languageVersion: 21`
+** 99-project.yaml: `languageVersion: "21"` (string vs number)
+. Suggests: "Ensure consistent types across configuration files"
+. *ENDS* (build fails with clear error)
+
+=== During <<step-developer>>: Developer Needs Override
+
+*Condition:* Project needs different value than company standard
+
+*Steps:*
+. Developer adds to `99-project.yaml`:
+```yaml
+java:
+  toolchain:
+    languageVersion: 17  # Override company default of 21
+```
+. System merges: project value wins
+. Override logged: "java.toolchain.languageVersion = 17 (from 99-project.yaml)"
+
+=== During <<step-update>>: Breaking Change in Shared Config
+
+*Condition:* Company updates Java version from 21 to 25, breaking some projects
+
+*Steps:*
+. Project sees build failure after submodule update
+. Developer checks `klx config show`
+. Sees: `languageVersion: 25 (from 01-company/defaults.yaml)`
+. Options:
+** Update project code for Java 25
+** Pin to 17 in `99-project.yaml` (temporary)
+** Discuss with team lead
+
+=== During <<step-distribute>>: Partial Override Pattern
+
+*Condition:* Project wants company defaults EXCEPT for one dependency
+
+*Steps:*
+. In `99-project.yaml`:
+```yaml
+# Inherit everything from company, but exclude this one dependency
+exclusions:
+  all:
+    - org.legacy:problematic-lib  # Added to company exclusions
+```
+. Arrays merge by appending
+. Result: company exclusions + project exclusions
+
+=== During <<step-create>>: Team-Specific Standards
+
+*Condition:* Different teams need different standards within same company
+
+*Steps:*
+. Structure:
+```
+.config/kalyx/
+├── 00-company/              # Everyone gets this
+├── 10-backend-team/         # Only backend teams
+├── 10-frontend-team/        # Only frontend teams
+└── 99-project.yaml
+```
+. Teams include appropriate 10-* layer via submodule selection
+
+== Technology and Data Variations
+
+=== Distribution Mechanisms
+| Method | Use When | Command |
+|--------|----------|---------|
+| Git submodule | Active development of standards | `git submodule add ...` |
+| Git subtree | Standards stable, simpler workflow | `git subtree add ...` |
+| Copy | One-time setup, no updates | Manual copy |
+| Maven artifact | Versioned config releases | Download via dependency |
+
+=== Layer Naming Conventions
+| Prefix | Purpose | Example |
+|--------|---------|---------|
+| 00-* | Distribution defaults | 00-kalyx-defaults |
+| 01-09 | Organization standards | 01-company |
+| 10-49 | Team/division standards | 10-backend |
+| 50-89 | Project-specific | 50-project |
+| 90-99 | Local overrides | 99-local.yaml (gitignored) |
+
+=== Merge Behavior
+| Type | Behavior | Example |
+|------|----------|---------|
+| Objects | Deep merge | `project: { name: X }` + `project: { version: Y }` = both |
+| Arrays | Append | `[a]` + `[b]` = `[a, b]` |
+| Scalars | Override | `value: 1` + `value: 2` = `2` |
+
+== Special Requirements
+
+* Merge order must be deterministic (alphabetical by filename)
+* Show source of each config value (`klx config show --source`)
+* Support for `!reset` directive to clear inherited arrays
+* Validation that merged config is schema-valid
+
+== Comparison with Gradle
+
+| Aspect | Gradle | Kalyx |
+|--------|--------|-------|
+| Shared config | `buildSrc` or convention plugins | Layered YAML files |
+| Distribution | Maven publication + plugin application | Git submodule/subtree/copy |
+| Overrides | Complex plugin inheritance | Simple file precedence |
+| Visibility | Debug plugin internals | `klx config show` |
+| Updates | New plugin version | Git pull on submodule |
+
+== Frequency of Occurrence
+
+Setup once per project, updates quarterly or as needed.
+
+== Open Issues
+
+* [[override-syntax]] Syntax for "remove this item from inherited array"?
+* [[conditional-config]] Conditional layers based on project properties?
+* [[config-validation]] Validate layers before merge or after?
+
+== Related Use Cases
+
+* xref:uc-001.adoc[UC-001: Developer Build Workflow]
+* xref:uc-004.adoc[UC-004: Migrate from Gradle]

@@ -1,0 +1,195 @@
+// SPDX-FileCopyrightText: Copyright © 2024-2026 Caleb Cushing
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+= UC-003: Run in Git Hook
+
+== Metadata
+
+[cols="1,3"]
+|===
+| Primary Actor | <<Developer>> committing code
+| Scope | Kalyx Build System - Git Integration
+| Level | Subfunction
+| Trigger | Developer runs `git commit`
+|===
+
+== Stakeholders and Interests
+
+*<<Developer>>*::
+  Wants immediate feedback on code quality before commit.
+  Needs hooks to run fast enough to not interrupt flow.
+  Should work identically on all machines without setup.
+  Must be able to bypass in emergencies.
+
+*<<Team Lead>>*::
+  Wants consistent code quality checks enforced.
+  Needs confidence that committed code passes basic validation.
+  Must not block developers with flaky checks.
+
+*<<CI System>>*::
+  Benefits from pre-validated commits reducing build failures.
+  Wants hooks that don't duplicate expensive CI work.
+
+== Preconditions
+
+* Git repository with `.git/hooks/` directory
+* Project has `kalyx.yaml` configured
+* Hook script installed (manually or via `klx hooks install`)
+
+== Postconditions
+
+=== Success Guarantee
+
+* Code validation runs successfully
+* Commit proceeds if validation passes
+* Clear failure message if validation fails
+* No partial commits on failure
+
+=== Minimal Guarantee
+
+* Fast feedback (under 5 seconds for simple checks)
+* Works offline (uses local cache)
+* No Gradle/Maven wrapper hell
+
+== Main Success Scenario
+
+. [[step-trigger,Git invokes pre-commit hook]] *Git invokes pre-commit hook* +
+  _Developer runs `git commit -m "message"`,
+  Git executes `.git/hooks/pre-commit`_
+
+. [[step-staged,System identifies staged files]] *System identifies staged files* +
+  _Hook runs `klx tool` with staged file list,
+  System determines which checks apply based on file types_
+
+. [[step-run,System runs appropriate tools]] *System runs appropriate tools* +
+  _For Java files: run ktlint, checkstyle, or formatter,
+  For all commits: run commit message linting,
+  Tools downloaded on first use, cached locally_
+
+. [[step-report,System reports results]] *System reports results* +
+  _If all checks pass: silent or brief success message,
+  Commit proceeds_
+
+. [[step-complete,Commit completes]] *Commit completes* +
+  _Git creates commit with staged changes_
+
+== Extensions (Alternative Flows)
+
+=== During <<step-run>>: Tool Not Found (First Run)
+
+*Condition:* Tool (e.g., ktlint) not in local cache
+
+*Steps:*
+. System downloads tool:
+** `klx tool com.pinterest.ktlint:ktlint-cli:1.2.0`
+. Progress shown: "Downloading ktlint..."
+. Cache stored for future runs
+. Continue with <<step-run>>
+
+=== During <<step-run>>: Check Fails
+
+*Condition:* ktlint finds formatting issue, or checkstyle violation
+
+*Steps:*
+. System displays errors with file and line numbers
+. Shows specific violation (e.g., "Wildcard import")
+. Suggests fix: "Run `klx format` to auto-fix"
+. Git aborts commit
+. Developer fixes issues and retries
+. *ENDS* (commit aborted)
+
+=== During <<step-run>>: Bypass Requested
+
+*Condition:* Developer uses `--no-verify` flag
+
+*Steps:*
+. Git skips hook entirely
+. Commit proceeds
+. Warning: "Bypassing pre-commit checks"
+. (Optional: Log bypass for audit)
+. Continue at <<step-complete>>
+
+=== During <<step-run>>: Tool Execution Timeout
+
+*Condition:* Tool takes longer than configured timeout (default 30s)
+
+*Steps:*
+. System interrupts tool
+. Displays: "ktlint timed out after 30s. Skipping."
+. Warning: "Pre-commit checks incomplete"
+. Commit allowed to proceed (configurable)
+. Continue at <<step-complete>>
+
+=== During <<step-run>>: Custom Project Script
+
+*Condition:* Project defines custom script in `kalyx.yaml`
+
+*Steps:*
+. Hook runs `klx script pre-commit`
+. Script defined in config:
+```yaml
+scripts:
+  pre-commit:
+    run:
+      - prettier: --check '**/*.md'
+      - ktlint: --relative
+```
+. Each tool runs in parallel
+. Combined results reported
+
+== Technology and Data Variations
+
+=== Hook Types Supported
+* `pre-commit` - Before commit created
+* `prepare-commit-msg` - Before editor opens for message
+* `commit-msg` - After message written, validates format
+* `post-commit` - After commit created (notifications)
+* `pre-push` - Before push to remote
+
+=== Common Hook Tools
+* ktlint - Kotlin formatting
+* checkstyle - Java style checking
+* prettier - Markdown/JSON/YAML formatting
+* git-conventional-commits - Commit message format
+* reuse - License header checking
+
+=== Installation Methods
+* Manual: Copy script to `.git/hooks/`
+* `klx hooks install` - Install configured hooks
+* `klx hooks install --type pre-commit` - Install specific hook
+
+== Special Requirements
+
+* Hook script must be POSIX shell (works on macOS, Linux, Windows Git Bash)
+* No `./gradlew` or wrapper scripts needed
+* `klx` binary must be in PATH
+* Startup time under 1 second (fast native/leyden)
+* Works offline after initial tool download
+* No project configuration required for basic hooks
+
+== Comparison with Gradle
+
+| Aspect | Gradle | Kalyx |
+|--------|--------|-------|
+| Hook script | `./gradlew check` (slow) | `klx tool` (fast) |
+| Startup | JVM warmup | Leyden cached |
+| Dependencies | All plugin deps loaded | Only tool loaded |
+| Portability | gradlew vs gradlew.bat | Single binary |
+| Configuration | build.gradle.kts | kalyx.yaml scripts |
+
+== Frequency of Occurrence
+
+Every commit.
+Estimated: 20-50 commits per developer per day.
+
+== Open Issues
+
+* [[hook-performance]] How to handle very large commits (1000+ files)?
+* [[hook-sharing]] Best way to share hooks across team without forcing?
+* [[hook-caching]] Should hook results be cached per-file for incremental validation?
+
+== Related Use Cases
+
+* xref:uc-001.adoc[UC-001: Developer Build Workflow]
+* xref:uc-004.adoc[UC-004: Multi-Module Build]

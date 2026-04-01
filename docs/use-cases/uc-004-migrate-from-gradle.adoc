@@ -1,0 +1,242 @@
+// SPDX-FileCopyrightText: Copyright © 2024-2026 Caleb Cushing
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+= UC-004: Migrate from Gradle
+
+== Metadata
+
+[cols="1,3"]
+|===
+| Primary Actor | <<Developer>> migrating existing project
+| Scope | Kalyx Build System - Migration Tooling
+| Level | User Goal
+| Trigger | Team decides to migrate from Gradle to Kalyx
+|===
+
+== Stakeholders and Interests
+
+*<<Developer>>*::
+  Wants automated migration where possible.
+  Needs clear guidance for manual steps.
+  Must maintain build functionality throughout migration.
+  Wants to understand why configuration differs.
+
+*<<Team Lead>>*::
+  Needs migration plan with timeline.
+  Wants to minimize disruption to active development.
+  Must ensure CI/CD continues working.
+
+*<<Build Engineer>>*::
+  Needs to understand how Kalyx replaces Gradle conventions.
+  Wants to verify parity in build outputs.
+
+== Preconditions
+
+* Existing Gradle project with `build.gradle.kts` and/or `build.gradle`
+* Gradle wrapper present
+* Project compiles and tests pass under Gradle
+
+== Postconditions
+
+=== Success Guarantee
+
+* `kalyx.yaml` created with equivalent configuration
+* Dependencies migrated to lock file
+* Build produces equivalent artifacts
+* CI/CD updated to use Kalyx
+* Gradle files removed or archived
+
+=== Minimal Guarantee
+
+* Migration report shows what was automated vs manual
+* Clear errors if migration cannot proceed
+
+== Main Success Scenario
+
+. [[step-initiate,Developer initiates migration]] *Developer initiates migration* +
+  _Developer runs `klx migrate from-gradle` in project root_
+
+. [[step-analyze,System analyzes Gradle configuration]] *System analyzes Gradle configuration* +
+  _Parses build.gradle.kts (Kotlin DSL) or build.gradle (Groovy),
+  identifies plugins applied,
+  extracts dependency declarations,
+  detects custom logic that cannot be migrated_
+
+. [[step-convert,System converts basic configuration]] *System converts basic configuration* +
+  _Creates `kalyx.yaml` with:
+  Project metadata (group, name from gradle properties),
+  Plugin equivalents (java-library -> io.kalyx.java),
+  Repositories,
+  Dependencies with versions,
+  Basic compiler settings_
+
+. [[step-report,System reports conversion status]] *System reports conversion status* +
+  _Lists:
+  Successfully converted items (green),
+  Items requiring manual review (yellow),
+  Items that cannot be converted (red),
+  Custom Gradle logic that needs plugin development_
+
+. [[step-manual,Developer handles manual migrations]] *Developer handles manual migrations* +
+  _Developer reviews and updates:
+  Custom buildSrc plugins,
+  Complex dependency rules (capabilities, attributes),
+  Custom tasks,
+  Integration with external tools_
+
+. [[step-verify,System verifies build works]] *System verifies build works* +
+  _Developer runs `klx build`,
+  System compiles code,
+  Runs tests,
+  Compares outputs with Gradle build_
+
+. [[step-complete,Migration complete]] *Migration complete* +
+  _`kalyx.lock` generated,
+  CI updated,
+  Gradle files can be removed_
+
+== Extensions (Alternative Flows)
+
+=== During <<step-analyze>>: Complex Gradle Logic Detected
+
+*Condition:* Gradle build uses custom plugins or complex scripting
+
+*Steps:*
+. System identifies:
+** Custom buildSrc plugins
+** Complex afterEvaluate blocks
+** Dynamic dependency resolution
+** Custom task implementations
+. Report categories:
+** Auto-convertible: standard plugins, simple dependencies
+** Semi-automated: version catalog to YAML
+** Manual: custom logic requiring new plugins
+. Continue with <<step-convert>> for convertible parts
+
+=== During <<step-convert>>: Version Catalog Present
+
+*Condition:* Project uses `gradle/libs.versions.toml`
+
+*Steps:*
+. System reads version catalog
+. Converts to inline versions in `kalyx.yaml`
+. Preserves bundle definitions as YAML anchors:
+```yaml
+versions:
+  spring-boot: 3.2.0
+.bundles: &bundles
+  spring-test: [spring-test, spring-boot-test, ...]
+```
+
+=== During <<step-convert>>: Multi-Module Project
+
+*Condition:* Project has `settings.gradle.kts` with included modules
+
+*Steps:*
+. System parses module structure
+. Creates root `kalyx.yaml` with `subprojects:` section
+. Each module gets own `kalyx.yaml`
+. Module dependencies (project(":foo") -> project:foo) converted
+
+=== During <<step-manual>>: Custom Plugin Needed
+
+*Condition:* Project uses custom Gradle plugin (like spring-app-commons convention plugins)
+
+*Steps:*
+. Developer extracts plugin logic
+. Options:
+** Create Kalyx plugin (for reusable logic)
+** Inline configuration in `kalyx.yaml` (for project-specific)
+** Use scripts section for simple automation
+. Reference: `docs/examples/spring-app-commons-comparison.md`
+
+=== During <<step-verify>>: Build Divergence
+
+*Condition:* Kalyx build produces different artifacts than Gradle
+
+*Steps:*
+. System compares:
+** JAR contents
+** Classpath order
+** Manifest entries
+. Report differences:
+** Expected (timestamps, build tool name)
+** Requires attention (missing files, different dependencies)
+. Developer adjusts configuration
+
+=== During <<step-analyze>>: No Supported Gradle Files
+
+*Condition:* Project uses Groovy DSL with heavy dynamic logic
+
+*Steps:*
+. System reports: "Limited conversion support for Groovy DSL with dynamic blocks"
+. Suggests: "Consider manual migration using docs/examples"
+. Creates minimal `kalyx.yaml` template
+. *ENDS* (partial migration)
+
+== Technology and Data Variations
+
+=== Gradle DSL Support
+* Kotlin DSL (build.gradle.kts) - Full support
+* Groovy DSL (build.gradle) - Basic support
+* Custom plugins - Manual migration
+* buildSrc - Manual migration
+
+=== What Migrates Automatically
+| Gradle | Kalyx |
+|--------|-------|
+| `plugins { id("java-library") }` | `plugins: [io.kalyx.java]` |
+| `dependencies { implementation(...) }` | `dependencies: { implementation: [...] }` |
+| `repositories { mavenCentral() }` | `repositories: [https://repo1.maven.org/...]` |
+| `java { toolchain { ... } }` | `toolchain: { languageVersion: ... }` |
+| `group = "com.example"` | `project: { group: com.example }` |
+
+=== What Requires Manual Work
+| Gradle | Kalyx Approach |
+|--------|----------------|
+| Custom buildSrc plugins | Create Kalyx plugin or inline |
+| `afterEvaluate { }` | Often unnecessary in Kalyx |
+| `tasks.register` custom tasks | Scripts section or custom plugin |
+| Complex capability resolution | Simplified dependency model |
+| Gradle-specific test suites | Kalyx test suites |
+
+== Special Requirements
+
+* Migration must not modify original Gradle files
+* Generated config should be formatted consistently
+* Comments explaining non-obvious conversions
+* Rollback plan (keep Gradle files until verified)
+
+== Comparison: spring-app-commons Migration
+
+**Before (Gradle):**
+- 17 configuration files
+- 342 lines of Java in CompilePlugin
+- buildSrc with 5 convention plugins
+- Version catalog + external catalog
+
+**After (Kalyx):**
+- 9 configuration files
+- YAML configuration
+- First-party plugins
+- Inline versions
+
+See: `docs/examples/spring-app-commons-comparison.md`
+
+== Frequency of Occurrence
+
+One-time per project.
+May affect multiple projects in organization.
+
+== Open Issues
+
+* [[groovy-dsl]] How much Groovy DSL complexity should we support?
+* [[custom-plugin-mapping]] Mapping from Gradle plugins to Kalyx plugins?
+* [[verification]] Automated verification that migrated build produces same outputs?
+
+== Related Use Cases
+
+* xref:uc-001.adoc[UC-001: Developer Build Workflow]
+* xref:uc-002.adoc[UC-002: Add Dependency]
+* xref:uc-007.adoc[UC-007: Create Custom Plugin]

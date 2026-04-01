@@ -397,7 +397,7 @@ dependencies:
   - javax.servlet:servlet-api:2.5@provided
   - org.postgresql:postgresql:42.7.0@runtime
   - org.junit:junit:5.11.0@test
-  - org.springframework.boot:spring-boot-dependencies:3.2.0@import
+  - org.springframework.boot:spring-boot-dependencies:3.2.0@bom
 ```
 
 **Note:** This is actual Maven 4 polyglot YAML syntax. A valid `pom.yml` from Maven 4 should work in Kalix with minimal changes.
@@ -516,25 +516,18 @@ Kalix supports Maven BOM (Bill of Materials) and Gradle Platform concepts for de
 #### Importing a BOM
 
 ```yaml
-# Maven-style BOM import
+# Import a BOM to manage versions
 dependencies:
-  - org.springframework.boot:spring-boot-dependencies:3.2.0@import
+  - org.springframework.boot:spring-boot-dependencies:3.2.0@bom
 ```
+
+**Why `@bom`?** Because everyone calls it a BOM. Maven uses `@import` for historical reasons, Gradle uses `platform`, but "BOM" is the universal term.
 
 BOM dependencies:
 
 - Provide version numbers for transitive dependencies
 - Not included in classpath themselves
 - Versions can be overridden explicitly
-
-#### Platform Dependencies (Gradle-style)
-
-```yaml
-# Gradle-style platform
-dependencies:
-  compile:
-    - platform: org.springframework.boot:spring-boot-dependencies:3.2.0
-```
 
 #### Local BOM Definition
 
@@ -560,7 +553,7 @@ Used by other projects:
 ```yaml
 # service/kalix.yaml
 dependencies:
-  - com.mycompany:my-company-bom:1.0.0@import
+  - com.mycompany:my-company-bom:1.0.0@bom
 
   compile:
     # Version inherited from BOM
@@ -572,7 +565,7 @@ dependencies:
 
 ```yaml
 dependencies:
-  - org.springframework.boot:spring-boot-dependencies:3.2.0@import
+  - org.springframework.boot:spring-boot-dependencies:3.2.0@bom
 
   compile:
     # Use BOM version

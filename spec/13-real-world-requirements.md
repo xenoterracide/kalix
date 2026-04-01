@@ -375,9 +375,11 @@ Problems:
 - **No simple "optional"** - Everything must be a "feature variant"
 - **Complex debugging** - Which feature variant created which configuration?
 
-### Kalix Approach: Dependency Roles (Experimental)
+### Kalix Approach: Dependency Roles + Maven 4 Shorthand
 
-Kalix attempts to avoid the "feature variant" magic by keeping concerns separate:
+Kalix supports both **map-based** (explicit) and **string-based** (shorthand) dependency declarations:
+
+#### Map-Based (Explicit)
 
 ```yaml
 # kalix.yaml
@@ -399,11 +401,55 @@ dependencies:
     - org.junit.jupiter:junit-jupiter:5.11.0
 ```
 
+#### String-Based Shorthand (Maven 4 Style)
+
+```yaml
+# Maven 4 shorthand: group:artifact:version@role
+# Role is roughly equivalent to scope/sourceSet
+
+dependencies:
+  # Flat list with @role suffix
+  - org.springframework.boot:spring-boot-starter-web:3.2.0@compile
+  - org.springframework.boot:spring-boot-devtools:3.2.0@development
+  - com.example:optional-lib:1.0.0@compileOptional
+  - org.junit.jupiter:junit-jupiter:5.11.0@test
+  - org.springframework.boot:spring-boot-dependencies:3.2.0@import
+```
+
+**Design principle:** Role determines both the **dependency category** (transitivity, resolution) and the **source sets** that include it.
+
+| Role              | Included In   | Transitive |
+| ----------------- | ------------- | ---------- |
+| `compile`         | main, test    | Yes        |
+| `test`            | test only     | No         |
+| `development`     | runtime, test | No         |
+| `compileOptional` | main          | Optional   |
+| `import`          | N/A (BOM)     | N/A        |
+
+#### Scope vs SourceSet
+
+Scopes and source sets are **separate concerns** but **conveniently overlap**:
+
+```yaml
+# Scope determines resolution behavior
+dependencies:
+  compile:
+    - org.slf4j:slf4j-api:2.0.0 # Goes to main classpath
+
+test:
+  sourceSets:
+    test:
+      # Source set determines which compilation unit gets it
+      # But scope already told us this is test-only
+```
+
+**Special case:** `import` scope is **purely for BOMs** - no source set, just version management.
+
 Does this actually work better? We'll see. The design goals are:
 
-- Scopes are just dependency categories, not coupled to source sets
-- Source sets are explicit when you want them
-- No implicit creation of 5 things
+- Roles are just dependency categories, not magically coupled to source sets
+- Source sets are explicit when you need them
+- No implicit creation of 5 things like Gradle's feature variants
 
 But the proof is in the implementation. This is marked as experimental.
 

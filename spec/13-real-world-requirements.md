@@ -549,10 +549,10 @@ project:
 
 dependencies:
   compile:
-    # Versions only, no artifacts
-    - org.springframework.boot:spring-boot-starter:3.2.0
+    # Versions managed by this BOM
     - org.postgresql:postgresql:42.7.0
     - org.slf4j:slf4j-api:2.0.0
+    - com.fasterxml.jackson.core:jackson-databind:2.15.0
 ```
 
 Used by other projects:
@@ -564,8 +564,8 @@ dependencies:
 
   compile:
     # Version inherited from BOM
-    - org.springframework.boot:spring-boot-starter
     - org.postgresql:postgresql
+    - org.slf4j:slf4j-api
 ```
 
 #### Version Overrides

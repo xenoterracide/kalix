@@ -31,10 +31,3 @@ SPDX-License-Identifier = "CC0-1.0"
 path = "gradle/wrapper/*"
 SPDX-FileCopyrightText = "See MANIFEST.MF in jar"
 SPDX-License-Identifier = "Apache-2.0"
-
-# Java source files - All Rights Reserved for now
-# Will be re-licensed once project direction is finalized
-[[annotations]]
-path = "**/*.java"
-SPDX-FileCopyrightText = "Copyright © 2024-2026 Caleb Cushing"
-SPDX-License-Identifier = "LicenseRef-AllRightsReserved"

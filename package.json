@@ -24,7 +24,7 @@
     "precontribute": "yarn setup:corepack && yarn setup:yarn",
     "reuse": "uv run --frozen --group dev reuse",
     "setup:corepack": "npm install -g corepack && corepack enable",
-    "setup:yarn": "yarn install --immutable",
+    "setup:yarn": "yarn install --immutable && cd .share && yarn install --immutable",
     "test": "yarn workspaces foreach --all run test"
   }
 }

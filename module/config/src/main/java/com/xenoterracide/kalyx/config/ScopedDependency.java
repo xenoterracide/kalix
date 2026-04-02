@@ -15,10 +15,7 @@ import java.util.Objects;
  * @param scope the scope, defaults to {@link Scope#COMPILE}
  */
 public record ScopedDependency(ArtifactCoordinate coordinate, Scope scope) {
-  /**
-   * Separator between coordinate and scope.
-   */
-  public static final String SCOPE_SEPARATOR = "@";
+  private static final String SCOPE_SEPARATOR = "@";
 
   /**
    * Creates a ScopedDependency with default COMPILE scope.

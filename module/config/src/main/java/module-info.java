@@ -6,7 +6,7 @@
  * Kalyx configuration module.
  */
 module com.xenoterracide.kalyx.config {
-  requires org.jspecify;
+  requires static org.jspecify;
 
   exports com.xenoterracide.kalyx.config;
 }

@@ -49,9 +49,9 @@ public record ArtifactCoordinate(String group, String artifact, String version) 
       );
     }
 
-    String group = coordinate.substring(0, firstColon);
-    String artifact = coordinate.substring(firstColon + 1, secondColon);
-    String version = coordinate.substring(secondColon + 1);
+    var group = coordinate.substring(0, firstColon);
+    var artifact = coordinate.substring(firstColon + 1, secondColon);
+    var version = coordinate.substring(secondColon + 1);
 
     return new ArtifactCoordinate(group, artifact, version);
   }

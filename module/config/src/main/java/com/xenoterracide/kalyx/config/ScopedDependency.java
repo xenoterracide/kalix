@@ -50,10 +50,10 @@ public record ScopedDependency(ArtifactCoordinate coordinate, Scope scope) {
       return new ScopedDependency(ArtifactCoordinate.parse(dependency));
     }
 
-    String coordinatePart = dependency.substring(0, atIndex);
-    String scopeName = dependency.substring(atIndex + 1);
+    var coordinatePart = dependency.substring(0, atIndex);
+    var scopeName = dependency.substring(atIndex + 1);
 
-    Scope scope = parseScope(scopeName);
+    var scope = parseScope(scopeName);
     return new ScopedDependency(ArtifactCoordinate.parse(coordinatePart), scope);
   }
 

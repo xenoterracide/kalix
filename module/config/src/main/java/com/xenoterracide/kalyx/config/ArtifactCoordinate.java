@@ -40,18 +40,12 @@ public record ArtifactCoordinate(String group, String artifact, String version) 
   public static ArtifactCoordinate parse(String coordinate) {
     Objects.requireNonNull(coordinate, "coordinate");
 
-    int firstDelim = coordinate.indexOf(DELIMITER);
-    int secondDelim = coordinate.indexOf(DELIMITER, firstDelim + 1);
-
-    if (firstDelim == -1 || secondDelim == -1 || coordinate.indexOf(DELIMITER, secondDelim + 1) != -1) {
+    var parts = coordinate.split(DELIMITER, -1);
+    if (parts.length != 3) {
       throw new IllegalArgumentException("Invalid format: " + coordinate);
     }
 
-    var group = coordinate.substring(0, firstDelim);
-    var artifact = coordinate.substring(firstDelim + 1, secondDelim);
-    var version = coordinate.substring(secondDelim + 1);
-
-    return new ArtifactCoordinate(group, artifact, version);
+    return new ArtifactCoordinate(parts[0], parts[1], parts[2]);
   }
 
   /**

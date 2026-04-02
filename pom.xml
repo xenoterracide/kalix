@@ -317,8 +317,10 @@ SPDX-License-Identifier: CC0-1.0
               <goal>check</goal>
             </goals>
             <configuration>
-              <configLocation>.config/checkstyle/main.xml</configLocation>
-              <suppressionsLocation>.config/checkstyle/suppressions-main.xml</suppressionsLocation>
+              <configLocation>${maven.multiModuleProjectDirectory}/.config/checkstyle/main.xml</configLocation>
+              <suppressionsLocation>
+                ${maven.multiModuleProjectDirectory}/.config/checkstyle/suppressions-main.xml
+              </suppressionsLocation>
               <sourceDirectories>
                 <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
               </sourceDirectories>
@@ -331,8 +333,10 @@ SPDX-License-Identifier: CC0-1.0
               <goal>check</goal>
             </goals>
             <configuration>
-              <configLocation>.config/checkstyle/test.xml</configLocation>
-              <suppressionsLocation>.config/checkstyle/suppressions-test.xml</suppressionsLocation>
+              <configLocation>${maven.multiModuleProjectDirectory}/.config/checkstyle/test.xml</configLocation>
+              <suppressionsLocation>
+                ${maven.multiModuleProjectDirectory}/.config/checkstyle/suppressions-test.xml
+              </suppressionsLocation>
               <sourceDirectories>
                 <sourceDirectory>${project.basedir}/src/test/java</sourceDirectory>
               </sourceDirectories>

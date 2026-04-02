@@ -31,12 +31,14 @@ public enum Scope {
   PROVIDED,
 
   /**
-   * Alias for PROVIDED, more explicit naming.
+   * Semantically equivalent to {@link #PROVIDED}, with more explicit naming.
+   * Note: this is a distinct enum constant, not a direct alias.
    */
   COMPILE_ONLY,
 
   /**
-   * Alias for RUNTIME, more explicit naming.
+   * Semantically equivalent to {@link #RUNTIME}, with more explicit naming.
+   * Note: this is a distinct enum constant, not a direct alias.
    */
   RUNTIME_ONLY,
 }

@@ -49,11 +49,11 @@ public record ArtifactCoordinate(String group, String artifact, String version) 
       );
     }
 
-    var group = coordinate.substring(0, firstColon);
-    var artifact = coordinate.substring(firstColon + 1, secondColon);
-    var version = coordinate.substring(secondColon + 1);
+    var grp = coordinate.substring(0, firstColon);
+    var art = coordinate.substring(firstColon + 1, secondColon);
+    var ver = coordinate.substring(secondColon + 1);
 
-    return new ArtifactCoordinate(group, artifact, version);
+    return new ArtifactCoordinate(grp, art, ver);
   }
 
   /**

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2026 Caleb Cushing
+// SPDX-FileCopyrightText: Copyright © 2026 Caleb Cushing
 //
 // SPDX-License-Identifier: LicenseRef-AllRightsReserved
 

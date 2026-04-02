@@ -16,6 +16,11 @@ import java.util.Objects;
  */
 public record ScopedDependency(ArtifactCoordinate coordinate, Scope scope) {
   /**
+   * Separator between coordinate and scope.
+   */
+  public static final String SCOPE_SEPARATOR = "@";
+
+  /**
    * Creates a ScopedDependency with default COMPILE scope.
    *
    * @param coordinate the artifact coordinate
@@ -45,16 +50,13 @@ public record ScopedDependency(ArtifactCoordinate coordinate, Scope scope) {
   public static ScopedDependency parse(String dependency) {
     Objects.requireNonNull(dependency, "dependency");
 
-    int atIndex = dependency.lastIndexOf('@');
-    if (atIndex == -1) {
-      return new ScopedDependency(ArtifactCoordinate.parse(dependency));
+    var parts = dependency.split(SCOPE_SEPARATOR, 2);
+    if (parts.length == 1) {
+      return new ScopedDependency(ArtifactCoordinate.parse(parts[0]));
     }
 
-    var coordinatePart = dependency.substring(0, atIndex);
-    var scopeName = dependency.substring(atIndex + 1);
-
-    var scope = parseScope(scopeName);
-    return new ScopedDependency(ArtifactCoordinate.parse(coordinatePart), scope);
+    var scope = parseScope(parts[1]);
+    return new ScopedDependency(ArtifactCoordinate.parse(parts[0]), scope);
   }
 
   private static Scope parseScope(String scopeName) {

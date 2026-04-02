@@ -78,6 +78,7 @@ SPDX-License-Identifier: CC0-1.0
         <groupId>org.jspecify</groupId>
         <artifactId>jspecify</artifactId>
         <version>${jspecify.version}</version>
+        <optional>true</optional>
       </dependency>
 
       <dependency>

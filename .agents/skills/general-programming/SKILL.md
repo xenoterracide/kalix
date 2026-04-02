@@ -266,6 +266,61 @@ fi
 
 Before implementing new functionality, check if it's already provided by standard libraries or existing dependencies. **Prefer existing code over writing your own**, even for seemingly "trivial" functions.
 
+## Rule 7: Code Quality Standards
+
+### Coverage Requirements
+
+- **Maintain high test coverage** (90%+ target)
+- Trivial code (getters/setters) should be exercised by other tests
+- If trivial code isn't covered, question whether it's needed
+- Coverage is a signal, not the goal - focus on meaningful tests
+
+### Static Analysis
+
+Tools like Checkstyle, SpotBugs, Error Prone, and others exist to catch issues early.
+
+**The Rule:**
+
+| Issue Found               | Action                                        |
+| ------------------------- | --------------------------------------------- |
+| Violation reported        | **Fix it** - don't suppress blindly           |
+| Fix would make code worse | Suppress **at the source** with justification |
+
+### Suppression Philosophy
+
+Suppress static analysis warnings **only when:**
+
+1. **The "fix" would make the code less clear or more complex**
+2. **You understand why the warning is a false positive in this context**
+3. **There's no cleaner alternative**
+
+**Suppress at the closest point to the issue:**
+
+```java
+// GOOD - suppression is right at the source, with explanation
+@SuppressWarnings("NullAway") // Factory method ensures non-null via validation
+public static User create(String email) {
+    // ... validation logic ...
+    return new User(email); // NullAway can't see validation
+}
+```
+
+```java
+// BAD - global suppression or far from source
+// In some distant config file:
+// checkstyle.ignore = ["MethodLength"]
+```
+
+### Self-Review Before Submitting
+
+Before considering code complete:
+
+1. **Run all quality checks locally** - coverage, static analysis, formatting
+2. **Review your own diff** - would you approve this if someone else wrote it?
+3. **Check for obvious issues** - commented-out code, debug prints, TODOs without tickets
+4. **Verify documentation** - is the why explained? Are complex parts clear?
+
+**Don't waste reviewer time on issues you could have caught yourself.**
 ---
 
 SPDX-FileCopyrightText: Copyright © 2026 Caleb Cushing

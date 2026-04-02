@@ -28,6 +28,102 @@ Let your domain language define the responsibilities in your system. Build each 
   - Error Prone [Var](https://errorprone.info/bugpattern/Var) rule is enforced to prevent mutable variables. If you need mutability, you must explicitly annotate with `@Var` and justify why mutability is necessary.
 - prefer non nullability. Using [jspecify](https://jspecify.dev/docs/spec/) and [Nullaway](https://github.com/uber/NullAway/wiki) we enforce non nullability by default and explicitly annotate nullable types with `@Nullable`. This helps prevent null pointer exceptions and makes it clear when a value can be null. `Optional` is preferred when mapping or filtering would be clearer than procedural logic.
 
+## Nullability with JSpecify
+
+This codebase uses [JSpecify](https://jspecify.dev/) for nullness annotations and [NullAway](https://github.com/uber/NullAway/wiki) for compile-time null safety.
+
+### The Rule: Non-Null by Default
+
+All types are **non-null by default**. You must explicitly mark nullable types:
+
+```java
+// GOOD - parameter is non-null (default), return is nullable
+public @Nullable User findById(String id) {
+    // ... may return null if not found
+}
+
+// GOOD - both parameters nullable
+public void merge(@Nullable User first, @Nullable User second) {
+    // ...
+}
+```
+
+### When to Use @Nullable
+
+Mark a type `@Nullable` when:
+
+- A method may return `null` (e.g., finders, lookups)
+- A parameter may accept `null` (avoid if possible)
+- A field may be uninitialized or set to `null`
+
+### Prefer Optional for Chain Operations
+
+Use `Optional` when you need to map/filter over potentially absent values:
+
+```java
+// GOOD - Optional for chaining
+return findById(id)
+    .map(User::getEmail)
+    .filter(Email::isValid)
+    .orElse(defaultEmail);
+
+// BAD - null check with intermediate variables
+var user = findById(id);
+if (user == null) return defaultEmail;
+var email = user.getEmail();
+if (email == null || !email.isValid()) return defaultEmail;
+return email;
+```
+
+### NullAway Suppressions
+
+If NullAway cannot prove non-nullness, first exhaust these options in order:
+
+### 1. Fix the Code
+
+Restructure to make non-nullness provable. This is almost always possible:
+
+```java
+// BEFORE - NullAway complains
+private String id;
+
+public void setId(String id) {
+    this.id = Objects.requireNonNull(id);
+}
+
+// AFTER - field is final, initialized in constructor
+private final String id;
+
+public Foo(String id) {
+    this.id = Objects.requireNonNull(id);
+}
+```
+
+### 2. Use @Initializer
+
+For framework initialization methods (e.g., `@PostConstruct`, `@BeforeEach`), use `@Initializer`:
+
+```java
+@Initializer
+@PostConstruct
+public void init() {
+    // NullAway understands this method initializes fields
+    this.service = createService();
+}
+```
+
+### 3. Suppression (Last Resort)
+
+Only suppress if NullAway is fundamentally wrong about the analysis. This is rare:
+
+```java
+// Only when NullAway's analysis is incorrect
+@SuppressWarnings("NullAway") // Validated by external framework contract
+private final String generatedId;
+```
+
+**Default to fixing the code, not suppressing.**
+
 ## Style
 
 ### var keyword
@@ -89,18 +185,121 @@ Avoid `internal` packages. Package-private visibility should be preferred to hid
 
 ### Builders
 
-prefer builder pattern over complex constructors with immutables library `@Builder` and a static factory. e.g.
+Prefer builder pattern over complex constructors with immutables library `@Builder` and a static factory. Also use `@Data` for generating type-safe field constants for testing.
+
+Required dependencies:
+- `org.immutables:value-annotations` (compile-only)
+- `org.immutables:datatype` (compile-only, for `@Data`)
 
 ```java
-import org.immutables.builder.Builder;
+import org.immutables.datatype.Data;
+import org.immutables.value.Value;
 
-@Builder
+@Value.Builder
+@Data
 record Bar(String foo) {
   public static BarBuilder builder() {
     return new BarBuilder();
   }
 }
 ```
+
+The `@Data` annotation generates `Bar_.FOO_` constants for type-safe field references in tests (see AssertJ section below).
+
+## Idiomatic AssertJ
+
+AssertJ provides a rich fluent API. Use it instead of manual extraction or property access.
+
+### Common Patterns
+
+```java
+// BAD - manual extraction
+assertThat(list.getUsers().get(0).getName()).isEqualTo("Alice");
+
+// GOOD - use first() and extracting()
+assertThat(list.getUsers())
+    .first()
+    .extracting(User::getName)
+    .isEqualTo("Alice");
+
+// EVEN BETTER - flat extracting
+assertThat(list.getUsers())
+    .extracting(User::getName)
+    .containsExactly("Alice", "Bob", "Carol");
+```
+
+### Use the Fluent API
+
+```java
+// BAD - chaining assertions
+assertThat(user.getName()).isEqualTo("Alice");
+assertThat(user.getAge()).isEqualTo(30);
+assertThat(user.isActive()).isTrue();
+
+// GOOD - satisfies with multiple checks (soft assertions)
+assertThat(user)
+    .satisfies(u -> {
+        assertThat(u.getName()).isEqualTo("Alice");
+        assertThat(u.getAge()).isEqualTo(30);
+        assertThat(u.isActive()).isTrue();
+    });
+
+// EVEN BETTER - returns for single property checks
+assertThat(user)
+    .returns("Alice", User::getName)
+    .returns(30, User::getAge);
+
+// BEST - hasFieldOrPropertyWithValue with Immutables datatype for fields
+// Immutables generates type-safe string constants: User_.NAME_
+// (accessed via Datatypes_User.User_.NAME_ or just User_.NAME_ if imported)
+assertThat(user)
+    .hasFieldOrPropertyWithValue(User_.NAME_, "Alice")
+    .hasFieldOrPropertyWithValue(User_.AGE_, 30);
+```
+
+### Collection Assertions
+
+```java
+// BAD - size check then element check
+assertThat(users).hasSize(3);
+assertThat(users.get(0)).isEqualTo(alice);
+
+// GOOD - containsExactly with varargs
+assertThat(users).containsExactly(alice, bob, carol);
+
+// For partial matching
+assertThat(users)
+    .extracting(User::getName)
+    .contains("Alice", "Bob")
+    .doesNotContain("Dave");
+```
+
+### Exception Assertions
+
+```java
+// BAD - try-catch
+try {
+    service.doSomething();
+    fail("Expected exception");
+} catch (IllegalArgumentException e) {
+    assertThat(e.getMessage()).contains("invalid");
+}
+
+// GOOD - assertThatThrownBy
+assertThatThrownBy(() -> service.doSomething())
+    .isInstanceOf(IllegalArgumentException.class)
+    .hasMessageContaining("invalid");
+```
+
+### Check Available Methods
+
+Use the **javadocs MCP server** to look up AssertJ's fluent API methods for the type you're asserting:
+
+- `AbstractObjectAssert` for object assertions
+- `AbstractListAssert` for list assertions
+- `AbstractThrowableAssert` for exception assertions
+
+Before writing manual extraction code, check if AssertJ already has a method for it.
 
 ## Use What's Already On The Classpath
 

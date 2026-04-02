@@ -28,7 +28,7 @@ SPDX-License-Identifier: CC0-1.0
     <maven.compiler.release>25</maven.compiler.release>
 
     <!-- Dependency versions -->
-    <snakeyaml-engine.version>2.10</snakeyaml-engine.version>
+    <snakeyaml-engine.version>3.0.1</snakeyaml-engine.version>
     <jspecify.version>1.0.0</jspecify.version>
     <immutables.version>2.12.1</immutables.version>
     <errorprone.annotations.version>2.48.0</errorprone.annotations.version>

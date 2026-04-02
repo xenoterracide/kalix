@@ -69,11 +69,11 @@ public record Dependency(
       );
     }
 
-    return new String[] {
-      coordinatePart.substring(0, firstColon),
-      coordinatePart.substring(firstColon + 1, secondColon),
-      coordinatePart.substring(secondColon + 1),
-    };
+    String[] parts = new String[3];
+    parts[0] = coordinatePart.substring(0, firstColon);
+    parts[1] = coordinatePart.substring(firstColon + 1, secondColon);
+    parts[2] = coordinatePart.substring(secondColon + 1);
+    return parts;
   }
 
   private record ScopeResult(String coordinatePart, String scope) {}

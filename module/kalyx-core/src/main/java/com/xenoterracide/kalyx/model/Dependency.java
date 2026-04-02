@@ -6,7 +6,6 @@ package com.xenoterracide.kalyx.model;
 
 import java.util.Objects;
 import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 /**
  * A dependency coordinate in the form group:artifact:version[@scope].
@@ -46,22 +45,36 @@ public record Dependency(
   public static @NonNull Dependency parse(@NonNull String coordinate) {
     Objects.requireNonNull(coordinate, "coordinate");
 
-    String coordinatePart = coordinate;
-    String scope = DEFAULT_SCOPE;
+    var result = extractScope(coordinate);
+    String[] parts = parseParts(result.coordinatePart(), coordinate);
 
+    return new Dependency(parts[0], parts[1], parts[2], result.scope());
+  }
+
+  private static ScopeResult extractScope(String coordinate) {
     int atIndex = coordinate.lastIndexOf('@');
-    if (atIndex != -1) {
-      coordinatePart = coordinate.substring(0, atIndex);
-      scope = coordinate.substring(atIndex + 1);
+    if (atIndex == -1) {
+      return new ScopeResult(coordinate, DEFAULT_SCOPE);
     }
+    return new ScopeResult(coordinate.substring(0, atIndex), coordinate.substring(atIndex + 1));
+  }
 
-    String[] parts = coordinatePart.split(":");
-    if (parts.length != 3) {
+  private static String[] parseParts(String coordinatePart, String original) {
+    int firstColon = coordinatePart.indexOf(':');
+    int secondColon = coordinatePart.indexOf(':', firstColon + 1);
+
+    if (firstColon == -1 || secondColon == -1 || coordinatePart.indexOf(':', secondColon + 1) != -1) {
       throw new IllegalArgumentException(
-        "Invalid coordinate format: " + coordinate + ". Expected group:artifact:version[@scope]"
+        "Invalid coordinate format: " + original + ". Expected group:artifact:version[@scope]"
       );
     }
 
-    return new Dependency(parts[0], parts[1], parts[2], scope);
+    return new String[] {
+      coordinatePart.substring(0, firstColon),
+      coordinatePart.substring(firstColon + 1, secondColon),
+      coordinatePart.substring(secondColon + 1),
+    };
   }
+
+  private record ScopeResult(String coordinatePart, String scope) {}
 }

@@ -1,0 +1,227 @@
+// SPDX-FileCopyrightText: Copyright © 2024-2026 Caleb Cushing
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+= UC-006: Clone and Go
+
+== Metadata
+
+[cols="1,3"]
+|===
+| Primary Actor | <<Developer>> cloning existing project
+| Scope | Kalyx Build System - Installation and Setup
+| Level | User Goal
+| Trigger | Developer clones repository and wants to build immediately
+|===
+
+== Stakeholders and Interests
+
+*<<Developer>>*::
+  Wants to clone repo and build immediately without setup steps.
+  Should not need to install build tool globally first.
+  Expects consistent behavior regardless of local environment.
+
+*<<Team Lead>>*::
+  Wants new team members productive in minutes, not hours.
+  Needs confidence that everyone uses same build tool version.
+  Must not require IT/admin intervention for setup.
+
+*<<CI/CD>>*::
+  Wants same "clone and go" behavior in CI as local development.
+  Needs reliable, repeatable builds without pre-installed tools.
+
+== Preconditions
+
+* Git repository with Kalyx project
+* Project has `./klx` wrapper script committed
+
+== Postconditions
+
+=== Success Guarantee
+
+* Developer can run build commands immediately after clone
+* Correct version of Kalyx is downloaded automatically
+* Build succeeds without manual installation steps
+
+=== Minimal Guarantee
+
+* Clear error message if wrapper cannot download Kalyx
+* Fallback instructions for manual installation
+
+== Main Success Scenario
+
+. [[step-clone,Developer clones repository]] *Developer clones repository* +
+  _Developer runs `git clone git@github.com:company/project.git`_
+
+. [[step-run,Developer runs build command]] *Developer runs build command* +
+  _Developer runs `./klx build` (or just `klx build` if Kalyx installed)_
+
+. [[step-detect,Wrapper detects local vs global]] *Wrapper detects local vs global* +
+  _If `./klx` exists: use wrapper (project-specific version),
+  If no wrapper but `klx` in PATH: use global installation,
+  If neither: error with install instructions_
+
+. [[step-download,Wrapper downloads Kalyx if needed]] *Wrapper downloads Kalyx if needed* +
+  _Checks `kalyx/wrapper/kalyx-wrapper.properties` for version,
+  Downloads from GitHub releases or Maven Central,
+  Verifies checksum,
+  Caches in `~/.kalyx/wrapper/`_
+
+. [[step-execute,Wrapper executes command]] *Wrapper executes command* +
+  _Wrapper delegates to downloaded Kalyx binary,
+  Command executes with project configuration_
+
+. [[step-complete,Build completes]] *Build completes* +
+  _Build output displayed,
+  Artifacts produced_
+
+== Extensions (Alternative Flows)
+
+=== During <<step-run>>: Global Kalyx Installed
+
+*Condition:* Developer has `klx` installed globally but project has `./klx` wrapper
+
+*Steps:*
+. Global `klx` detects `./klx` wrapper in current directory
+. Global `klx` delegates to wrapper (like Yarn behavior)
+. Wrapper proceeds with <<step-download>>
+. Benefit: Developer can type `klx` or `./klx` interchangeably
+
+=== During <<step-run>>: No Wrapper, Global Installed
+
+*Condition:* Project doesn't have `./klx` committed, but `klx` in PATH
+
+*Steps:*
+. Global `klx` runs directly
+. Uses globally installed version
+. Warning: "No ./klx wrapper found. Using global klx X.Y.Z. Consider adding wrapper to project."
+. Build proceeds
+
+=== During <<step-run>>: jbang Mode
+
+*Condition:* Developer hasn't installed Kalyx, uses jbang
+
+*Steps:*
+. Developer runs `jbang klx@kalyx build`
+. jbang resolves `klx@kalyx` from Maven Central or GitHub
+. jbang downloads and caches Kalyx
+. Kalyx executes build
+. No installation required
+
+=== During <<step-run>>: Wrapper Not Executable
+
+*Condition:* `./klx` exists but not executable (Unix)
+
+*Steps:*
+. System attempts to execute, gets permission denied
+. Clear error: "Run: chmod +x ./klx"
+. Or suggest: "Use 'bash ./klx build' instead"
+
+=== During <<step-download>>: Network Unavailable
+
+*Condition:* First run but no internet connection
+
+*Steps:*
+. Wrapper checks cache for any version
+. If cached version available: "Using cached Kalyx X.Y.Z (project wants Z.Z.Z)"
+. If no cache: "Cannot download Kalyx. Please connect to internet or install manually."
+. *ENDS* (failed)
+
+=== During <<step-download>>: Download Corrupted
+
+*Condition:* Checksum verification fails
+
+*Steps:*
+. Wrapper retries download (max 3 times)
+. If still fails: "Download corrupted. Checksum mismatch."
+. Suggests: "Check network or download manually from ..."
+. *ENDS* (failed)
+
+== Technology and Data Variations
+
+=== Wrapper Script Types
+| Platform | Wrapper Script | Notes |
+|----------|---------------|-------|
+| Unix/Linux/macOS | `./klx` (shell) | POSIX compatible |
+| Windows | `./klx.bat` or `./klx.ps1` | CMD or PowerShell |
+| Universal | `./klx` (jbang) | Works everywhere with jbang |
+
+=== Distribution Methods
+| Method | Use Case | Example |
+|--------|----------|---------|
+| GitHub Releases | Primary download | `https://github.com/kalyx/klx/releases/download/v1.0.0/klx-1.0.0-linux-x64.tar.gz` |
+| Maven Central | Alternative | `https://repo1.maven.org/maven2/io/kalyx/klx/1.0.0/klx-1.0.0.jar` |
+| Corporate mirror | Air-gapped environments | Configurable in wrapper properties |
+
+=== Version Specification
+```properties
+# kalyx/wrapper/kalyx-wrapper.properties
+distributionUrl=https://github.com/kalyx/klx/releases/download/v1.2.3/klx-1.2.3
+version=1.2.3
+sha256Sum=abc123...
+```
+
+== Comparison
+
+| Tool | Wrapper | Global Delegates | jbang Support | Notes |
+|------|---------|------------------|---------------|-------|
+| Gradle | `./gradlew` | ❌ No | ❌ No | Must use wrapper explicitly |
+| Maven | `./mvnw` | ❌ No | ❌ No | Must use wrapper explicitly |
+| Yarn | `.yarn/releases/*` | ✅ Yes | ❌ No | Global delegates to local |
+| **Kalyx** | `./klx` | ✅ Yes | ✅ Yes | Best of both |
+
+== Special Requirements
+
+* Wrapper script must be under 100 lines (readable, auditable)
+* Download must verify checksum before execution
+* Cache location: `~/.kalyx/wrapper/<version>/`
+* Wrapper properties in `kalyx/wrapper/` (not root, keeps clean)
+* First download under 30 seconds on broadband
+* Must work offline after first download
+
+== jbang Integration
+
+=== Via Alias
+```bash
+# Add to jbang catalog
+jbang app install klx@kalyx
+
+# Then use anywhere
+klx build
+```
+
+=== Via Direct GAV
+```bash
+# Run specific version
+jbang io.kalyx:klx:1.2.3 build
+```
+
+=== Wrapper as jbang Script
+```bash
+#!/usr/bin/env jbang
+//REPOS mavenCentral
+//DEPS io.kalyx:klx-wrapper:1.2.3
+public class klx {
+    public static void main(String... args) {
+        // Wrapper logic here
+    }
+}
+```
+
+== Frequency of Occurrence
+
+Every new clone, every new team member, every CI job.
+Estimated: 100-1000 "clone and go" events per project per month.
+
+== Open Issues
+
+* [[wrapper-size]] How to keep wrapper small but functional?
+* [[corporate-proxy]] Auto-detect corporate proxy settings?
+* [[version-pinning]] Should wrapper auto-update or pin strictly?
+* [[jbang-default]] Make jbang the recommended install method?
+
+== Related Use Cases
+
+* xref:uc-001-developer-build-workflow.adoc[UC-001: Developer Build Workflow]
+* xref:uc-003-run-in-git-hook.adoc[UC-003: Run in Git Hook]
+* xref:uc-004-migrate-from-gradle.adoc[UC-004: Migrate from Gradle]

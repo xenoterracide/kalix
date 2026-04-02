@@ -1,0 +1,216 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Caleb Cushing
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Kalyx Configuration for spring-app-commons
+# Compare to: build.gradle.kts, settings.gradle.kts, buildSrc/, gradle/libs.versions.toml
+
+#
+SPDX-FileCopyrightText: Copyright © 2024-2026 Caleb Cushing
+SPDX-License-Identifier: MIT
+
+project:
+  name: spring-app-commons
+  group: com.xenoterracide
+  version: ${git.describe}
+
+toolchain:
+  languageVersion: 25
+
+# PLUGINS - published separately in gradle-convention project
+plugins:
+  # io.kalyx.compile provides:
+  # - Error Prone with 200+ checks
+  # - NullAway configuration
+  # - Different behavior for prod vs test
+  # - Compiler args (-parameters, -Xlint:all, etc.)
+  - io.kalyx.compile:2.0.0
+
+  # io.kalyx.checkstyle provides:
+  # - Checkstyle per source set
+  # - Config from .config/checkstyle/<sourceSet>.xml
+  # - Falls back to root project config
+  - io.kalyx.checkstyle:2.0.0
+
+  # io.kalyx.coverage provides:
+  # - Unified coverage for multiple test suites
+  # - Coverage minimum enforcement
+  - io.kalyx.coverage:2.0.0
+
+  # io.kalyx.spotbugs provides:
+  # - SpotBugs static analysis
+  - io.kalyx.spotbugs:2.0.0
+
+  # io.kalyx.publish provides:
+  # - GitHub publishing
+  # - License metadata
+  - io.kalyx.publish:2.0.0
+
+# Repositories
+repositories:
+  - https://maven.pkg.github.com/xenoterracide/java-commons:
+      name: gh
+      content:
+        include: com.xenoterracide:tools
+      credentials: gh-packages
+  - https://repo1.maven.org/maven2
+
+# Version catalog
+versions:
+  axon: 5.x
+  errorprone: 2.x
+  immutables: 2.x
+  jakarta: 11.x
+  spring-boot: 4.x
+  spring-modulith: 2.x
+
+# BOM IMPORTS - replaces our.bom.gradle.kts
+boms:
+  - jakarta.platform:jakarta.jakartaee-bom:${jakarta}
+  - org.springframework.boot:spring-boot-dependencies:${spring-boot}
+  - org.jmolecules:jmolecules-bom:2025.x
+  - org.springframework.modulith:spring-modulith-bom:${spring-modulith}
+
+# EXCLUSIONS - replaces our.bom.gradle.kts exclusions
+exclusions:
+  all:
+    - org.slf4j:slf4j-nop
+    - junit:junit
+    - org.junit.jupiter:junit-jupiter
+  runtime:
+    - com.google.code.findbugs:jsr305
+    - com.google.errorprone:error_prone_annotations
+    - org.checkerframework:checker-qual
+    - ch.qos.logback:logback-classic
+
+# RESOLUTION STRATEGY
+resolution:
+  reject:
+    - pattern: "^[\\d.]+-(RC|M|ea|beta|alpha).*$"
+      exceptGroup: com.xenoterracide
+    - pattern: ".*-SNAPSHOT$"
+      exceptGroup: com.xenoterracide
+  capabilities:
+    jakarta.el:
+      select: org.apache.tomcat.embed:tomcat-embed-el
+  replace:
+    - from: org.springframework.boot:spring-boot-starter-logging
+      to: org.springframework.boot:spring-boot-starter-log4j2
+      reason: "Use Log4j2 instead of Logback"
+
+# GLOBAL DEPENDENCIES
+dependencies:
+  compileOnly:
+    - jakarta.annotation:jakarta.annotation-api
+    - org.jspecify:jspecify:1.x
+    - org.jmolecules:jmolecules-layered-architecture
+  runtimeOnly:
+    - org.springframework.boot:spring-boot-starter-log4j2
+  annotationProcessor:
+    - com.google.errorprone:error_prone_core:${errorprone}
+    - com.uber.nullaway:nullaway:0.x
+  constraints:
+    - org.jboss.logging:jboss-logging:3.+
+
+# JVM ARGS FOR TESTS
+java:
+  test:
+    jvmArgs:
+      - --add-reads
+      - org.hibernate.validator=org.apache.tomcat.embed.el
+
+# PLUGIN CONFIGURATION
+# Replaces the detailed configuration in CompilePlugin.java, CheckstyleConventionPlugin.java, etc.
+
+compile:
+  # Error Prone checks - replaces BASE_ERROR_PRONE_CHECKS list
+  errorprone:
+    # Checks enabled as errors (the 200+ checks from CompilePlugin)
+    error:
+      - AddNullMarkedToPackageInfo
+      - AmbiguousMethodReference
+      - ArgumentSelectionDefectChecker
+      # ... (200 more checks)
+      - WaitNotInLoop
+
+    # Checks disabled
+    disable:
+      - InvalidInlineTag
+      - MultipleNullnessAnnotations
+
+    # Different checks for production vs test
+    productionOnly:
+      - JavaTimeDefaultTimeZone
+      - NullAway
+
+    # Excluded when running in IDEA
+    ideaExcluded:
+      - WildcardImport
+      - UnusedVariable
+      - UnusedMethod
+      - UnusedNestedClass
+
+    # Generated code exclusions
+    excludeGenerated: true
+    excludedPaths: ".*/build/generated/sources/annotationProcessor/.*"
+
+  # NullAway configuration - replaces CompilePlugin.configureNullAway()
+  nullaway:
+    acknowledgeRestrictiveAnnotations: true
+    annotatedPackages: [com, org, net, io, dev, graphql]
+    checkContracts: true
+    checkOptionalEmptiness: true
+    excludedFieldAnnotations: org.junit.jupiter.api.io.TempDir
+    handleTestAssertionLibraries: true
+    jspecifyMode: true
+    unannotatedSubPackages:
+      - io.vavr
+      - org.apache.commons.lang3
+      - org.assertj
+      - org.eclipse.jgit
+
+  # Compiler args - replaces CompilePlugin.configureCompilerArgs()
+  args:
+    - -parameters
+    - -implicit:class
+    - -g
+    - -Xdiags:verbose
+    - -Xlint:all
+    - -Xlint:-processing
+    - -Xlint:-exports
+    - -Xlint:-requires-transitive-automatic
+    - -Xlint:-requires-automatic
+    - -Xlint:-fallthrough # handled by error-prone
+
+  # Test-specific compiler args
+  testArgs:
+    - -Xlint:-unchecked
+    - -Xlint:-varargs
+
+  encoding: UTF-8
+
+checkstyle:
+  # Config file pattern - replaces CheckstyleConventionPlugin.getPath()
+  configPattern: .config/checkstyle/{sourceSet}.xml
+  fallbackToRoot: true
+  showViolations: true
+
+coverage:
+  minimum: 0.3
+
+# Subprojects
+subprojects:
+  autoDiscover: module
+  defaults:
+    plugins:
+      - io.kalyx.javalibrary:2.0.0
+
+# Publishing
+publishing:
+  repository:
+    github:
+      owner: xenoterracide
+      name: spring-app-commons
+  legal:
+    inceptionYear: 2024
+    license: AGPL-3.0-or-later

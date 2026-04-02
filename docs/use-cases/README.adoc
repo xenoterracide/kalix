@@ -1,0 +1,86 @@
+// SPDX-FileCopyrightText: Copyright © 2024-2026 Caleb Cushing
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+= Kalyx Use Cases
+
+This directory contains use case specifications for the Kalyx build system, following the Cockburn format with semantic anchors and ubiquitous language.
+
+== Core Use Cases
+
+|===
+| ID | Name | Actor | Goal
+
+| xref:uc-001-developer-build-workflow.adoc[UC-001]
+| Developer Build Workflow
+| Developer
+| Compile, test, and package code efficiently
+
+| xref:uc-002-add-dependency.adoc[UC-002]
+| Add Dependency
+| Developer
+| Add external library with automatic resolution
+
+| xref:uc-003-run-in-git-hook.adoc[UC-003]
+| Run in Git Hook
+| Developer
+| Fast pre-commit validation without Gradle overhead
+
+| xref:uc-004-migrate-from-gradle.adoc[UC-004]
+| Migrate from Gradle
+| Developer / Team Lead
+| Convert existing Gradle project to Kalyx
+
+| xref:uc-005-manage-shared-configuration.adoc[UC-005]
+| Manage Shared Configuration
+| Team Lead / Build Engineer
+| Share build standards across projects
+
+| xref:uc-006-clone-and-go.adoc[UC-006]
+| Clone and Go
+| Developer
+| Clone repo and build immediately without setup
+
+| xref:uc-007-work-offline.adoc[UC-007]
+| Work Offline
+| Developer
+| Proactive offline preparation for unreliable network
+|===
+
+== Real-World Context
+
+These use cases are derived from actual pain points in projects like:
+
+* **spring-app-commons** - Multi-module Spring Boot project with complex Gradle conventions
+* **gradle-convention** - Custom Gradle plugins for build standardization
+* **General Gradle/Maven frustrations** - Slow builds, complex configuration, poor error messages
+
+== Key Problems Solved
+
+1. **Gradle's complexity** - 342 lines of Java for Error Prone configuration becomes YAML
+2. **BuildSrc overhead** - Custom plugins become first-party or simple YAML
+3. **Git hook performance** - `klx tool` starts instantly vs Gradle JVM warmup
+4. **Configuration sharing** - Layered YAML files vs Maven/Gradle plugin publishing
+5. **Reproducibility** - Mandatory lock files, immutable versions, supply chain verification
+
+== Document Format
+
+Each use case follows the link:https://en.wikipedia.org/wiki/Use_case#Cockburn_style[Cockburn format]:
+
+* **Metadata** - Actor, scope, level, trigger
+* **Stakeholders** - Who cares and what they want
+* **Preconditions** - What must be true before
+* **Postconditions** - What guarantees after
+* **Main Success Scenario** - Happy path with numbered steps
+* **Extensions** - Alternative flows and failures
+* **Technology Variations** - Different ways to achieve goal
+* **Special Requirements** - Constraints and quality attributes
+
+== Creating New Use Cases
+
+See the link:/home/ai/kalyx/.agents/skills/use-case-creator/[use-case-creator skill] for:
+
+* Template structure
+* Semantic anchor patterns
+* Ubiquitous language guidelines
+* Step reference patterns

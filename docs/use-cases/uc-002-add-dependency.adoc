@@ -1,0 +1,205 @@
+// SPDX-FileCopyrightText: Copyright © 2024-2026 Caleb Cushing
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+= UC-002: Add Dependency
+
+== Metadata
+
+[cols="1,3"]
+|===
+| Primary Actor | <<Developer>> adding library to project
+| Scope | Kalyx Build System - Dependency Management
+| Level | User Goal
+| Trigger | Developer needs to use external library
+|===
+
+== Stakeholders and Interests
+
+*<<Developer>>*::
+  Wants simple command to add dependency.
+  Needs version conflict resolution handled automatically.
+  Should not need to understand transitive dependency graphs.
+  Wants to verify compatibility before committing.
+
+*<<Security Team>>*::
+  Needs to track all dependencies and their licenses.
+  Requires vulnerability scanning of new dependencies.
+  Must ensure only approved artifact repositories used.
+
+*<<Team Lead>>*::
+  Wants consistent versions across team.
+  Needs to review dependency changes in pull requests.
+  Must ensure build remains reproducible.
+
+== Preconditions
+
+* Project has `kalyx.yaml` with repositories configured
+* Developer knows Maven coordinate (group:artifact:version) or can search
+
+== Postconditions
+
+=== Success Guarantee
+
+* Dependency declared in `kalyx.yaml`
+* Exact version locked in `kalyx.lock`
+* Transitive dependencies resolved and locked
+* Build succeeds with new dependency available
+* Downloaded artifacts verified (checksums, signatures)
+
+=== Minimal Guarantee
+
+* No modification if resolution fails
+* Clear error message explaining why addition failed
+
+== Main Success Scenario
+
+. [[step-specify,Developer specifies dependency]] *Developer specifies dependency* +
+  _Developer runs `klx add org.slf4j:slf4j-api:2.0.9` or `klx add org.slf4j:slf4j-api:2.0.x` for version range_
+
+. [[step-resolve,System resolves version]] *System resolves version* +
+  _If range specified (2.0.x), queries repositories for latest matching version,
+  if exact version specified, uses it directly_
+
+. [[step-download,System downloads and verifies artifact]] *System downloads and verifies artifact* +
+  _Downloads JAR and POM from repository,
+  verifies SHA-256 checksum,
+  verifies PGP signature if available,
+  stores in local cache_
+
+. [[step-transitive,System resolves transitive dependencies]] *System resolves transitive dependencies* +
+  _Reads POM dependencies,
+  recursively resolves entire dependency graph,
+  handles version conflicts (newest wins unless forced),
+  detects and reports version conflicts_
+
+. [[step-update-config,System updates configuration files]] *System updates configuration files* +
+  _Adds dependency declaration to `kalyx.yaml` (if not existing),
+  updates `kalyx.lock` with exact resolved versions and hashes,
+  formats files consistently_
+
+. [[step-verify,System verifies build works]] *System verifies build works* +
+  _Runs quick compilation check with new dependencies,
+  verifies no classpath conflicts,
+  reports any immediate issues_
+
+. [[step-report,System reports results]] *System reports results* +
+  _Summary: added dependency, resolved N transitive deps,
+  total download size,
+  any warnings (vulnerabilities, license issues, etc.)_
+
+== Extensions (Alternative Flows)
+
+=== During <<step-specify>>: Version Not Specified
+
+*Condition:* Developer runs `klx add org.slf4j:slf4j-api` without version
+
+*Steps:*
+. System queries repositories for latest version
+. Displays: "Latest version is 2.0.9. Use `klx add org.slf4j:slf4j-api:2.0.9` or `klx add org.slf4j:slf4j-api:2.0.x` for latest patch"
+. *ENDS* (no changes made)
+
+=== During <<step-transitive>>: Version Conflict Detected
+
+*Condition:* New dependency requires version of library that conflicts with existing
+
+*Steps:*
+. System identifies conflict:
+** Existing: com.google.guava:guava:32.0.0
+** New requires: com.google.guava:guava:31.0.0
+. Resolution options presented:
+** Accept newer (32.0.0) - may work, may not
+** Force older (31.0.0) - may break other dependencies
+** Exclude transitive and hope
+. Developer chooses resolution
+. System records choice in `kalyx.lock` with explanation
+. Resume at <<step-update-config>>
+
+=== During <<step-download>>: Artifact Signature Missing
+
+*Condition:* Artifact has no PGP signature in repository
+
+*Steps:*
+. System downloads artifact
+. Warning displayed: "Artifact com.example:lib:1.0.0 is unsigned"
+. Build continues (configurable: can require signatures)
+. Recorded in lock file: `signed: false`
+
+=== During <<step-download>>: Signature Verification Failed
+
+*Condition:* PGP signature doesn't match or key unknown
+
+*Steps:*
+. Build fails with security error
+. Display: "Artifact signature verification failed for com.example:lib:1.0.0"
+. Options:
+** Skip verification (not recommended)
+** Add trusted key to keychain
+** Contact artifact publisher
+. *ENDS* (failed)
+
+=== During <<step-verify>>: Compilation Fails
+
+*Condition:* New dependency introduces API incompatible with existing code
+
+*Steps:*
+. Compiler errors displayed
+. New dependency available in classpath for investigation
+. Developer fixes code or reverts dependency change
+. *ENDS* (no automatic recovery)
+
+=== During <<step-specify>>: Search Mode
+
+*Condition:* Developer runs `klx search slf4j` or `klx search "logging"`
+
+*Steps:*
+. System queries Maven Central and configured repositories
+. Displays matching artifacts with descriptions
+. Developer selects from list
+. Continue at <<step-resolve>>
+
+== Technology and Data Variations
+
+=== Version Specifications
+* Exact: `1.0.0`
+* Range: `1.0.x` (any patch), `1.x` (any minor)
+* Semver: `^1.0.0` (compatible), `~1.0.0` (approximately)
+* Latest: `latest` (not recommended, for testing only)
+
+=== Scopes
+* `compile` - Required at compile and runtime
+* `runtimeOnly` - Required only at runtime
+* `test` - Required for testing
+* `development` - Development-only (like Spring Boot DevTools)
+* `compileOnly` - Compile-time only, not in runtime classpath
+
+=== Repository Sources
+* Maven Central
+* Corporate Nexus/Artifactory
+* GitHub Packages
+* Local filesystem
+
+== Special Requirements
+
+* Lock file must be human-readable (JSON with comments)
+* Dependency tree must be viewable (`klx dependencies --tree`)
+* Security vulnerabilities reported immediately
+* License information available for all dependencies
+* Offline mode must work after initial download
+
+== Frequency of Occurrence
+
+Regular activity during development.
+Estimated: 5-20 dependency additions per developer per week.
+
+== Open Issues
+
+* [[version-conflict-ui]] What's the best UI for resolving version conflicts?
+* [[vulnerability-db]] Which vulnerability database to use? (Snyk, OSV, NVD)
+* [[private-repo-auth]] How to handle authentication for private repositories cleanly?
+
+== Related Use Cases
+
+* xref:uc-001.adoc[UC-001: Developer Build Workflow]
+* xref:uc-005.adoc[UC-005: Update Dependencies]
+* xref:uc-006.adoc[UC-006: Security Audit]

@@ -1,0 +1,185 @@
+// SPDX-FileCopyrightText: Copyright © 2024-2026 Caleb Cushing
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+= UC-001: Developer Build Workflow
+
+== Metadata
+
+[cols="1,3"]
+|===
+| Primary Actor | <<Developer>> working on Java project
+| Scope | Kalyx Build System - Development Context
+| Level | User Goal
+| Trigger | Developer needs to compile, test, or run application
+|===
+
+== Stakeholders and Interests
+
+*<<Developer>>*::
+  Wants fast feedback on code changes.
+  Needs to trust that successful build means code works.
+  Should not need to think about build system complexity.
+
+*<<Team Lead>>*::
+  Needs consistent builds across all developer machines.
+  Wants new team members productive immediately.
+  Must enforce code quality standards without blocking developers.
+
+*<<CI System>>*::
+  Requires builds that work identically to local development.
+  Needs reproducible outputs for deployment.
+
+== Preconditions
+
+* <<Developer>> has Java source code in standard layout
+* Project has `kalyx.yaml` configuration
+* Dependencies declared in configuration
+
+== Postconditions
+
+=== Success Guarantee
+
+* Code compiled with correct compiler settings
+* Tests executed and passed
+* Artifacts produced in reproducible manner
+* Incremental build cache updated
+
+=== Minimal Guarantee
+
+* Clear error messages if build fails
+* No partial/corrupt artifacts on failure
+
+== Main Success Scenario
+
+. [[step-initiate,Developer initiates build]] *Developer initiates build* +
+  _Developer runs `klx build` in project directory_
+
+. [[step-resolve,System resolves and downloads dependencies]] *System resolves and downloads dependencies* +
+  _System reads `kalyx.lock`, downloads any missing artifacts from repositories,
+  verifies signatures and checksums_
+
+. [[step-incremental,System determines incremental work needed]] *System determines incremental work needed* +
+  _System compares source file hashes against cache,
+  identifies which compilation units need rebuild_
+
+. [[step-compile,System compiles source code]] *System compiles source code* +
+  _Java compiler invoked with configured processors (Error Prone, NullAway, etc.),
+  compilation errors presented clearly with file and line numbers_
+
+. [[step-test,System runs tests]] *System runs tests* +
+  _Test classes compiled if needed,
+  JUnit tests executed,
+  results reported with pass/fail status_
+
+. [[step-package,System packages artifacts]] *System packages artifacts* +
+  _JAR files created with proper manifest,
+  reproducible timestamps from git commit,
+  module-info.class verified_
+
+. [[step-report,System reports build results]] *System reports build results* +
+  _Summary shown: compiled N files, ran M tests (X failed),
+  artifacts in `build/libs/`,
+  next suggested steps_
+
+== Extensions (Alternative Flows)
+
+=== During <<step-resolve>>: Lock File Stale
+
+*Condition:* `kalyx.yaml` dependencies changed but `kalyx.lock` not updated
+
+*Steps:*
+. System detects version mismatch
+. Display: "Dependencies changed. Run `klx update` to refresh lock file."
+. *ENDS* (failed - intentional safety check)
+
+=== During <<step-compile>>: Compilation Error
+
+*Condition:* Java source contains syntax or type error
+
+*Steps:*
+. Compiler reports error with file path and line number
+. System displays error in context with surrounding code
+. No further steps executed
+. *ENDS* (failed)
+
+=== During <<step-test>>: Test Failure
+
+*Condition:* One or more test assertions fail
+
+*Steps:*
+. System continues running all tests (fail-fast configurable)
+. Failed tests reported with:
+** Test class and method name
+** Assertion message
+** Expected vs actual values
+** Stack trace (truncated to relevant frames)
+. Build marked as failed
+. *ENDS* (failed)
+
+=== During <<step-resolve>>: Artifact Not Found
+
+*Condition:* Dependency declared but not available in repositories
+
+*Steps:*
+. System lists all repositories searched
+. Shows exact coordinate that failed
+. Suggests:
+** Check for typos in group/artifact name
+** Verify version exists
+** Add missing repository
+. *ENDS* (failed)
+
+=== During <<step-initiate>>: Clean Build Requested
+
+*Condition:* Developer runs `klx clean && klx build`
+
+*Steps:*
+. System removes all build outputs
+. Continues with <<step-resolve>>
+. No cache used - everything rebuilt
+
+== Technology and Data Variations
+
+=== Build Commands
+* `klx build` - full build with tests
+* `klx compile` - compile only, no tests
+* `klx test` - compile and test
+* `klx assemble` - package artifacts, no tests
+* `klx run <script>` - execute a defined script
+* `klx exec <binary>` - execute a tool binary
+
+=== Source Layouts Supported
+* Maven standard (`src/main/java`, `src/test/java`)
+* Flat (`src/*.java`)
+* Custom (configured in `kalyx.yaml`)
+
+=== Test Frameworks
+* JUnit 5 (Jupiter)
+* TestNG (planned)
+* Custom test engines via plugin
+
+== Special Requirements
+
+* First build after clone should work without additional setup
+* Incremental builds for single file change under 1 second
+* No "clean build" needed in normal workflow
+* Build cache portable across machines (content-addressed)
+* Build outputs identical for same inputs (reproducible)
+
+== Frequency of Occurrence
+
+Primary daily activity.
+Estimated: 50-200 builds per developer per day.
+
+== Open Issues
+
+* [[incremental-annotation-processing]] How to handle annotation processors that generate code based on multiple source files?
+* [[test-parallelism]] Optimal test parallelization strategy for different hardware?
+* [[build-scan]] Should Kalyx provide build scan/tracing for debugging slow builds?
+
+== Related Use Cases
+
+* xref:uc-002.adoc[UC-002: Add Dependency]
+* xref:uc-003.adoc[UC-003: Run in Git Hook]
+* xref:uc-004.adoc[UC-004: Multi-Module Build]

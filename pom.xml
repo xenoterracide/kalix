@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+SPDX-FileCopyrightText: Copyright © 2026 Caleb Cushing
+
+SPDX-License-Identifier: CC0-1.0
+SPDX-License-Identifier: LicenseRef-AllRightsReserved
+-->
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.xenoterracide</groupId>
+  <artifactId>kalyx</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>Kalyx</name>
+  <description>A build system for the Java ecosystem</description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>25</maven.compiler.release>
+
+    <!-- Dependency versions -->
+    <snakeyaml-engine.version>2.9</snakeyaml-engine.version>
+    <jspecify.version>1.0.0</jspecify.version>
+
+    <!-- Plugin versions -->
+    <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+    <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
+    <errorprone.core.version>2.48.0</errorprone.core.version>
+    <nullaway.version>0.13.1</nullaway.version>
+
+    <!-- Test versions -->
+    <junit.version>5.12.0</junit.version>
+    <assertj.version>3.27.7</assertj.version>
+  </properties>
+
+  <dependencies>
+    <!-- Nullability annotations -->
+    <dependency>
+      <groupId>org.jspecify</groupId>
+      <artifactId>jspecify</artifactId>
+      <version>${jspecify.version}</version>
+    </dependency>
+
+    <!-- Error Prone annotations -->
+    <dependency>
+      <groupId>com.google.errorprone</groupId>
+      <artifactId>error_prone_annotations</artifactId>
+      <version>${errorprone.core.version}</version>
+    </dependency>
+
+    <!-- YAML/JSON parsing -->
+    <dependency>
+      <groupId>org.snakeyaml</groupId>
+      <artifactId>snakeyaml-engine</artifactId>
+      <version>${snakeyaml-engine.version}</version>
+    </dependency>
+
+    <!-- Testing -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${assertj.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven-compiler-plugin.version}</version>
+        <configuration>
+          <release>25</release>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>com.google.errorprone</groupId>
+              <artifactId>error_prone_core</artifactId>
+              <version>${errorprone.core.version}</version>
+            </path>
+            <path>
+              <groupId>com.uber.nullaway</groupId>
+              <artifactId>nullaway</artifactId>
+              <version>${nullaway.version}</version>
+            </path>
+          </annotationProcessorPaths>
+          <compilerArgs>
+            <arg>-parameters</arg>
+            <arg>--should-stop=ifError=FLOW</arg>
+            <arg>-XDcompilePolicy=simple</arg>
+            <arg>
+              -Xplugin:ErrorProne
+              -XepDisableWarningsInGeneratedCode
+              -XepOpt:NullAway:AnnotatedPackages=com.xenoterracide
+              -XepOpt:NullAway:JSpecifyMode=true
+              -Xep:NullAway:ERROR
+            </arg>
+          </compilerArgs>
+        </configuration>
+        <executions>
+          <execution>
+            <id>default-testCompile</id>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+            <configuration>
+              <compilerArgs>
+                <arg>-parameters</arg>
+                <arg>--should-stop=ifError=FLOW</arg>
+                <arg>-XDcompilePolicy=simple</arg>
+                <arg>
+                  -Xplugin:ErrorProne
+                  -XepDisableWarningsInGeneratedCode
+                  -Xep:NullAway:OFF
+                </arg>
+              </compilerArgs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven-surefire-plugin.version}</version>
+      </plugin>
+    </plugins>
+  </build>
+
+  <licenses>
+    <license>
+      <name>All Rights Reserved</name>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Caleb Cushing</name>
+      <email>xenoterracide@gmail.com</email>
+    </developer>
+  </developers>
+</project>

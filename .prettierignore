@@ -11,4 +11,6 @@ build/
 .idea/
 gradlew*
 gradle/wrapper/*
+mvnw*
+.mvn/wrapper/*
 .agents/

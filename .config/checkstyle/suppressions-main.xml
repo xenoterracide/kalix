@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<!--
+SPDX-FileCopyrightText: Copyright © 2024-2026 Caleb Cushing
+
+SPDX-License-Identifier: CC0-1.0
+-->
+<!DOCTYPE suppressions PUBLIC "-//Checkstyle//DTD Suppressions 1.2//EN"
+  "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+<suppressions>
+  <!-- Generated sources are not checked -->
+  <suppress files="[/\\]target[/\\]generated-sources[/\\]" checks=".*" />
+</suppressions>

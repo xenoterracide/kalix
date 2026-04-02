@@ -31,14 +31,14 @@ class ArtifactCoordinateTest {
   void parseTooManyColonsThrows() {
     assertThatThrownBy(() -> ArtifactCoordinate.parse("org.junit:junit:4.13.2:extra"))
       .isInstanceOf(IllegalArgumentException.class)
-      .hasMessageContaining("Invalid coordinate format");
+      .hasMessageContaining("Invalid format");
   }
 
   @Test
   void parseTooFewColonsThrows() {
     assertThatThrownBy(() -> ArtifactCoordinate.parse("org.junit:junit"))
       .isInstanceOf(IllegalArgumentException.class)
-      .hasMessageContaining("Invalid coordinate format");
+      .hasMessageContaining("Invalid format");
   }
 
   @Test

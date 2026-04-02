@@ -8,9 +8,9 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 > Work-in-progress breakdown. Not a commitment, just a thinking tool.
 
-## Milestone 0: Config Parser (Day 1-2)
+## ✅ Milestone 0: Config Parser (Day 1-2)
 
-**Goal:** Parse a minimal `kalix.yaml`
+**Goal:** Parse a minimal `kalyx.yaml`
 
 ```yaml
 dependencies:
@@ -19,9 +19,9 @@ dependencies:
 
 **Done when:**
 
-- [ ] Can parse YAML to Java objects
-- [ ] Extracts dependency coordinates
-- [ ] Test: parse → print coordinates
+- [x] Can parse YAML to Java objects
+- [x] Extracts dependency coordinates
+- [x] Test: parse → print coordinates
 
 **Explicitly NOT included:**
 

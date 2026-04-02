@@ -18,18 +18,14 @@ SPDX-License-Identifier: CC0-1.0
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>kalyx-core</artifactId>
-  <name>Kalyx Core</name>
-  <description>Core library for Kalyx build system</description>
+  <artifactId>kalyx-config</artifactId>
+  <name>Kalyx Config</name>
+  <description>Configuration models for Kalyx build system</description>
 
   <dependencies>
     <dependency>
       <groupId>org.jspecify</groupId>
       <artifactId>jspecify</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.snakeyaml</groupId>
-      <artifactId>snakeyaml-engine</artifactId>
     </dependency>
 
     <!-- Test dependencies -->

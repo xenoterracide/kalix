@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+SPDX-FileCopyrightText: Copyright © 2026 Caleb Cushing
+
+SPDX-License-Identifier: CC0-1.0
+-->
+<FindBugsFilter>
+  <!--
+    EI_EXPOSE_REP and EI_EXPOSE_REP2 are false positives for records
+    that use List.of() which returns immutable collections.
+    SpotBugs cannot detect that these are actually immutable.
+  -->
+  <Match>
+    <Class name="com.xenoterracide.kalyx.config.KalyxConfig" />
+    <Or>
+      <Bug pattern="EI_EXPOSE_REP" />
+      <Bug pattern="EI_EXPOSE_REP2" />
+    </Or>
+  </Match>
+</FindBugsFilter>

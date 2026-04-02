@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: LicenseRef-AllRightsReserved
 
 /**
- * Domain models for Kalyx configuration and dependencies.
+ * Configuration models for Kalyx build system.
  */
 @NullMarked
-package com.xenoterracide.kalyx.model;
+package com.xenoterracide.kalyx.config;
 
 import org.jspecify.annotations.NullMarked;

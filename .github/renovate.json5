@@ -8,7 +8,7 @@
   dependencyDashboard: true,
   timezone: "UTC",
   platformAutomerge: true,
-  automergeStrategy: "squash",
+  automergeStrategy: "rebase",
   // Rebase whenever PR falls behind base branch to keep them mergeable
   rebaseWhen: "behind-base-branch",
   // Subtrees are excluded - updates should be pulled via git subtree pull, not Renovate
@@ -47,8 +47,8 @@
       // Only these get digest pins; other actions get normal version tag updates
       matchManagers: ["github-actions"],
       matchDepNames: ["xenoterracide/**"],
+      extends: ["helpers:pinGitHubActionDigests"],
       automerge: true,
-      pinDigests: true,
     },
     {
       // Run every Wednesday

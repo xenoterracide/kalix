@@ -307,7 +307,7 @@ As you write code together, watch for signals that the model needs refinement:
 - **use-case-creator** - Use cases evolve; update them as understanding grows
 - **testing** - Tests capture and protect domain understanding
 - **domain-driven-design** (if available) - Deep model refinement
-- **general-programming** - Refactoring skills support iteration
+- **coding-standards** - Refactoring skills support iteration
 
 ---
 

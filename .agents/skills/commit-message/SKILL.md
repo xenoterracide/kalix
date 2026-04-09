@@ -1,10 +1,18 @@
 ---
 name: commit-message
-description: When you need to describe what code changes do - whether for a commit message or PR description. Reads the actual git diff to generate proper conventional commit format with type, scope, and summary. Use when writing commit messages, creating PR descriptions, or summarizing changes.
-# SPDX-FileCopyrightText: Copyright © 2026 Caleb Cushing
-#
-# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+description: |
+  Use when you need a commit message, PR title, or PR description that reflects
+  the actual changes. Reads the git diff to produce conventional commit output
+  with a clear subject, rationale, and summary of what changed.
 ---
+
+<!--
+SPDX-FileCopyrightText: Copyright © 2026 Caleb Cushing
+
+SPDX-License-Identifier: CC-BY-NC-SA-4.0
+-->
+
+# Commit Message
 
 ## Instructions
 

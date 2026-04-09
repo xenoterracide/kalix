@@ -1,10 +1,22 @@
 ---
 name: github
-description: Interact with GitHub - repositories, issues, pull requests. Prefer MCP tools when available, fall back to GitHub CLI `gh` if not.
-# SPDX-FileCopyrightText: Copyright © 2026 Caleb Cushing
-#
-# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+description: |
+  Interact with GitHub repositories, issues, pull requests, review comments, and
+  GraphQL operations. Prefer MCP tools when available, then fall back to the
+  GitHub CLI `gh` for repository-hosted workflows.
 ---
+
+<!--
+SPDX-FileCopyrightText: Copyright © 2026 Caleb Cushing
+
+SPDX-License-Identifier: CC-BY-NC-SA-4.0
+-->
+
+# GitHub Skill
+
+This skill covers **GitHub platform tools and APIs** — MCP tools, the `gh` CLI,
+and GraphQL queries. It is GitHub-specific; for commit/push/PR workflow
+mechanics (which are platform-agnostic), use the `pull-request` skill instead.
 
 ## Tool Priority
 

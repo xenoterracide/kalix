@@ -32,6 +32,8 @@ import org.jspecify.annotations.Nullable;
  */
 public final class DependencyResolver implements AutoCloseable {
 
+  private static final String SEP = ":";
+
   private final MavenRepositoryClient repositoryClient;
 
   private final PomParser pomParser;
@@ -73,9 +75,9 @@ public final class DependencyResolver implements AutoCloseable {
       return ResolutionResult.empty();
     }
 
-    GraphResult graphResult = buildGraph(directDeps);
-    ConflictResolution conflicts = resolveConflicts(graphResult.versionConflicts);
-    List<ResolvedArtifact> resolved = downloadArtifacts(conflicts.selectedVersions, graphResult.artifacts);
+    GraphResult graphResult = this.buildGraph(directDeps);
+    ConflictResolution conflicts = this.resolveConflicts(graphResult.versionConflicts);
+    List<ResolvedArtifact> resolved = this.downloadArtifacts(conflicts.selectedVersions, graphResult.artifacts);
 
     return new ResolutionResult(resolved, conflicts.conflictReport, graphResult.errors);
   }
@@ -87,7 +89,7 @@ public final class DependencyResolver implements AutoCloseable {
    * @return the resolution result
    */
   public ResolutionResult resolve(ArtifactCoordinate coordinate) {
-    return resolve(List.of(coordinate));
+    return this.resolve(List.of(coordinate));
   }
 
   /**
@@ -118,9 +120,9 @@ public final class DependencyResolver implements AutoCloseable {
    */
   void enqueueDirectDeps(List<ArtifactCoordinate> directDeps, Queue<ResolutionRequest> queue, Set<String> visited) {
     for (ArtifactCoordinate coord : directDeps) {
-      String key = coord.group() + ":" + coord.artifact();
+      String key = coord.group() + SEP + coord.artifact();
       queue.add(new ResolutionRequest(coord, Scope.COMPILE, false));
-      visited.add(key + ":" + coord.version());
+      visited.add(key + SEP + coord.version());
     }
   }
 
@@ -165,7 +167,7 @@ public final class DependencyResolver implements AutoCloseable {
     List<ResolutionResult.ResolutionError> errors
   ) {
     ArtifactCoordinate coord = request.coordinate();
-    String key = coord.group() + ":" + coord.artifact();
+    String key = coord.group() + SEP + coord.artifact();
 
     versionConflicts.computeIfAbsent(key, k -> new ArrayList<>()).add(coord.version());
 
@@ -199,8 +201,8 @@ public final class DependencyResolver implements AutoCloseable {
         continue;
       }
 
-      String depKey = dep.groupId() + ":" + dep.artifactId();
-      String depFullKey = depKey + ":" + depVersion;
+      String depKey = dep.groupId() + SEP + dep.artifactId();
+      String depFullKey = depKey + SEP + depVersion;
 
       if (visited.contains(depFullKey)) {
         continue;

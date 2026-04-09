@@ -366,12 +366,6 @@ public final class PomParser {
     String groupId = getTextContent(dep, TAG_GROUP);
     @Nullable
     String artifactId = getTextContent(dep, TAG_ARTIFACT);
-    @Nullable
-    String version = getTextContent(dep, TAG_VERSION);
-    @Nullable
-    String scope = getTextContent(dep, TAG_SCOPE);
-    @Nullable
-    String optional = getTextContent(dep, TAG_OPTIONAL);
 
     if (groupId == null || artifactId == null) {
       return null;
@@ -379,10 +373,13 @@ public final class PomParser {
 
     groupId = substitute(groupId, props);
     artifactId = substitute(artifactId, props);
+
+    @Nullable
+    String version = getTextContent(dep, TAG_VERSION);
     version = version != null ? substitute(version, props) : null;
 
-    Scope depScope = parseScope(scope);
-    boolean isOptional = "true".equalsIgnoreCase(optional);
+    Scope depScope = parseScope(getTextContent(dep, TAG_SCOPE));
+    boolean isOptional = "true".equalsIgnoreCase(getTextContent(dep, TAG_OPTIONAL));
 
     return new PomDependency(groupId, artifactId, version, depScope, isOptional);
   }
@@ -475,6 +472,12 @@ public final class PomParser {
   ) {
     /**
      * Creates a POM model.
+     *
+     * @param coordinate the coordinate
+     * @param packaging the packaging
+     * @param parent the parent
+     * @param dependencies the dependencies
+     * @param managedDependencies the managed dependencies
      */
     public PomModel {
       Objects.requireNonNull(coordinate, "pomCoordinate");
@@ -492,7 +495,7 @@ public final class PomParser {
      * @return true if packaging is "pom"
      */
     public boolean isPomOnly() {
-      return "pom".equals(packaging);
+      return "pom".equals(this.packaging);
     }
   }
 

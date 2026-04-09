@@ -17,10 +17,10 @@ import org.jspecify.annotations.Nullable;
 /**
  * Compares Maven version strings following Maven's version comparison rules.
  *
- * <p>Maven versions are compared by splitting them into tokens.
+ * Maven versions are compared by splitting them into tokens.
  *
- * <p>Special qualifiers in order: alpha less than beta less than milestone
- *   less than rc less than snapshot less than release less than sp.
+ * Special qualifiers in order: alpha less than beta less than milestone
+ * less than rc less than snapshot less than release less than sp.
  *
  * @see <a href="https://maven.apache.org/pom.html#Version_Order_Specification">Maven Version Order Spec</a>
  */
@@ -38,14 +38,14 @@ public final class VersionComparator implements Comparator<String>, Serializable
   private static final int RANK_RELEASE = 6;
   private static final int RANK_SP = 7;
 
-  private VersionComparator() {
-    // singleton
-  }
-
   /**
    * Singleton instance.
    */
   public static final VersionComparator INSTANCE = new VersionComparator();
+
+  private VersionComparator() {
+    // singleton
+  }
 
   @Override
   public int compare(String v1, String v2) {

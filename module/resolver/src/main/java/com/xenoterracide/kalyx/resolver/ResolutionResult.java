@@ -23,6 +23,8 @@ public record ResolutionResult(
   Map<String, List<String>> conflicts,
   List<ResolutionError> errors
 ) {
+  private static final String SEP = ":";
+
   /**
    * Creates a resolution result with validation.
    */
@@ -93,9 +95,9 @@ public record ResolutionResult(
    * @return optional resolved artifact
    */
   public Optional<ResolvedArtifact> findArtifact(String group, String artifact) {
-    String key = group + ":" + artifact;
+    String key = group + SEP + artifact;
     return this.resolvedArtifacts.stream()
-      .filter(a -> (a.group() + ":" + a.artifact()).equals(key))
+      .filter(a -> (a.group() + SEP + a.artifact()).equals(key))
       .findFirst();
   }
 

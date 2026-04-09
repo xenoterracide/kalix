@@ -182,39 +182,46 @@ public final class MavenRepositoryClient implements AutoCloseable {
    */
   private Path download(String url, Path target) throws ResolutionException {
     try {
-      Path parent = target.getParent();
-      if (parent != null) {
-        Files.createDirectories(parent);
-      }
-
-      HttpRequest request = HttpRequest.newBuilder()
-        .uri(URI.create(url))
-        .timeout(TIMEOUT)
-        .header("User-Agent", "Kalyx-Resolver/0.1.0")
-        .GET()
-        .build();
-
-      HttpResponse<InputStream> response = this.httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
-
-      if (response.statusCode() != 200) {
-        throw new ResolutionException("HTTP " + response.statusCode() + " for " + url);
-      }
-
-      InputStream body = response.body();
-      if (body == null) {
-        throw new ResolutionException("Empty response body for " + url);
-      }
-
-      try (InputStream in = body) {
-        Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
-      }
-
+      createParentDirs(target);
+      HttpResponse<InputStream> response = sendRequest(url);
+      writeResponseToFile(response, target, url);
       return target;
     } catch (IOException e) {
       throw new ResolutionException("Failed to download " + url + DELIM + e.getMessage(), e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new ResolutionException("Download interrupted" + DELIM + url, e);
+    }
+  }
+
+  private static void createParentDirs(Path target) throws IOException {
+    Path parent = target.getParent();
+    if (parent != null) {
+      Files.createDirectories(parent);
+    }
+  }
+
+  private HttpResponse<InputStream> sendRequest(String url) throws IOException, InterruptedException {
+    HttpRequest request = HttpRequest.newBuilder()
+      .uri(URI.create(url))
+      .timeout(TIMEOUT)
+      .header("User-Agent", "Kalyx-Resolver/0.1.0")
+      .GET()
+      .build();
+    return this.httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+  }
+
+  private static void writeResponseToFile(HttpResponse<InputStream> response, Path target, String url)
+    throws IOException, ResolutionException {
+    if (response.statusCode() != 200) {
+      throw new ResolutionException("HTTP " + response.statusCode() + " for " + url);
+    }
+    InputStream body = response.body();
+    if (body == null) {
+      throw new ResolutionException("Empty response body for " + url);
+    }
+    try (InputStream in = body) {
+      Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
     }
   }
 }

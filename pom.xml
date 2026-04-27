@@ -33,7 +33,7 @@ SPDX-License-Identifier: CC0-1.0
     <immutables.version>2.12.1</immutables.version>
     <errorprone.annotations.version>2.48.0</errorprone.annotations.version>
     <errorprone.core.version>2.48.0</errorprone.core.version>
-    <nullaway.version>0.13.3</nullaway.version>
+    <nullaway.version>0.13.4</nullaway.version>
 
     <!-- Plugin versions -->
     <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>

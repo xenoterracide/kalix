@@ -2,7 +2,7 @@
 # Manual changes might be lost - proceed with caution!
 
 __metadata:
-  version: 8
+  version: 9
   cacheKey: 10c0
 
 "@chevrotain/cst-dts-gen@npm:11.0.3":
@@ -289,14 +289,14 @@ __metadata:
   linkType: hard
 
 "git-conventional-commits@npm:^2.8.0":
-  version: 2.8.0
-  resolution: "git-conventional-commits@npm:2.8.0"
+  version: 2.9.0
+  resolution: "git-conventional-commits@npm:2.9.0"
   dependencies:
     yaml: "npm:^2.1.3"
     yargs: "npm:^17.6.2"
   bin:
     git-conventional-commits: cli.js
-  checksum: 10c0/15e2bd7e6aaeb4697a351e66f66d51f62badbb26a8c356fae5475715d49c6fa0e1672e42bebf11416215317c0ca52eae9ce1c8b94ee8cb59819f76393c1b665e
+  checksum: 10c0/103ce82e2815f44d0ebde032fcddf7b652b50e915278a9c369d7546c5e07f696a117c127deb4a0dd182c9a0985513f099b5a94e6f07d7f6f988ce50d16fc4554
   languageName: node
   linkType: hard
 
@@ -514,11 +514,11 @@ __metadata:
   linkType: hard
 
 "prettier@npm:^3.6.2":
-  version: 3.8.1
-  resolution: "prettier@npm:3.8.1"
+  version: 3.8.3
+  resolution: "prettier@npm:3.8.3"
   bin:
     prettier: bin/prettier.cjs
-  checksum: 10c0/33169b594009e48f570471271be7eac7cdcf88a209eed39ac3b8d6d78984039bfa9132f82b7e6ba3b06711f3bfe0222a62a1bfb87c43f50c25a83df1b78a2c42
+  checksum: 10c0/754816fd7593eb80f6376d7476d463e832c38a12f32775a82683adb6e35b772b1f484d65f19401507b983a8c8a7cd5a4a9f12006bd56491e8f35503473f77473
   languageName: node
   linkType: hard
 

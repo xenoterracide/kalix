@@ -45,7 +45,7 @@ SPDX-License-Identifier: CC0-1.0
     <checkstyle.version>13.5.0</checkstyle.version>
     <spotbugs-maven-plugin.version>4.9.8.3</spotbugs-maven-plugin.version>
     <spotbugs.version>4.9.8</spotbugs.version>
-    <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
     <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
 
     <!-- Test versions -->

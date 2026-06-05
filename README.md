@@ -6,3 +6,7 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 -->
 
 # template-main
+
+## AI Agent Skills
+
+This repository uses skills from [xenoterracide/agent-skills](https://github.com/xenoterracide/agent-skills), a Kimi Code plugin providing AI coding agent capabilities for Java, Gradle, GitHub, and development workflows.

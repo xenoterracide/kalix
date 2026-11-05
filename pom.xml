@@ -21,6 +21,7 @@ SPDX-License-Identifier: CC0-1.0
 
   <modules>
     <module>module/config</module>
+    <module>module/resolver</module>
   </modules>
 
   <properties>
